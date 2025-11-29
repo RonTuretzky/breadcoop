@@ -1,9 +1,14 @@
 # Conductor Worktree Tracker
 
-A terminal CLI tool that monitors [Conductor](https://conductor.app)'s SQLite database and displays worktrees you've visited with growing time indicators and PR hierarchy visualization.
+A visualization tool that monitors [Conductor](https://conductor.app)'s SQLite database and displays worktrees you've visited with growing time indicators and PR hierarchy visualization.
+
+**Two versions available:**
+- `tracker.py` - Terminal-based ASCII visualization
+- `tracker3d.py` - Interactive 3D visualization using VisPy
 
 ## Quick Start
 
+### Terminal Version
 ```bash
 # Run with defaults (radial view, today's activity)
 python3 tracker.py
@@ -16,6 +21,20 @@ python3 tracker.py --stale 5
 
 # Skip PR fetching for faster startup
 python3 tracker.py --no-prs
+```
+
+### 3D Version
+```bash
+# Create virtual environment and install dependencies
+python3 -m venv .venv
+source .venv/bin/activate
+pip install vispy PyQt6 numpy
+
+# Run the 3D visualization
+python3 tracker3d.py
+
+# Skip PR fetching for faster startup
+python3 tracker3d.py --no-prs
 ```
 
 ## Configuration
@@ -150,11 +169,45 @@ Each worktree shows a status indicator based on its Claude session state:
 3. **PR Hierarchy**: Uses GitHub PR base/head relationships to build parent-child tree
 4. **Click Detection**: When you switch to a workspace in Conductor, its `updated_at` timestamp changes
 
+## 3D Visualization
+
+The 3D version (`tracker3d.py`) renders your worktree activity as an interactive 3D graph:
+
+### Features
+- **Spherical nodes**: Worktrees displayed as 3D spheres
+- **Color coding**: Same green → yellow → orange → red time-based coloring
+- **Working animation**: Nodes pulse when Claude is actively working
+- **Interactive camera**: Drag to rotate, scroll to zoom, Shift+drag to pan
+- **Hierarchy edges**: Lines connect parent-child PR relationships
+
+### 3D Layout
+- Repositories are arranged in a circle on the XZ plane
+- Worktrees radiate outward from their repo, rising in Y (height) based on depth
+- PR hierarchy is shown via connecting edges
+
+### Controls
+| Action | Control |
+|--------|---------|
+| Rotate | Left-click drag |
+| Zoom | Scroll wheel |
+| Pan | Shift + left-click drag |
+| Reset | Middle-click |
+
 ## Dependencies
 
+### Terminal Version
 - Python 3.8+
 - `tqdm` (optional, for progress bars): `pip install tqdm`
 - `gh` CLI (for GitHub PR queries): `brew install gh`
+
+### 3D Version
+- Python 3.8+
+- `vispy`: GPU-accelerated visualization
+- `PyQt6`: Window toolkit
+- `numpy`: Numerical operations
+- `gh` CLI (for GitHub PR queries): `brew install gh`
+
+Install with: `pip install vispy PyQt6 numpy`
 
 ## Data Sources
 
