@@ -11,8 +11,8 @@ python3 tracker.py
 # Run once and exit (for testing)
 python3 tracker.py --once
 
-# Colorblind mode with 5-minute stale threshold
-python3 tracker.py --colorblind --stale 5
+# 5-minute stale threshold
+python3 tracker.py --stale 5
 
 # Skip PR fetching for faster startup
 python3 tracker.py --no-prs
@@ -27,7 +27,6 @@ All settings can be configured via `config.json` in the same directory as `track
 ```json
 {
   "stale_minutes": 30,
-  "colorblind": false,
   "interval_seconds": 2.0,
   "show_hierarchy": true,
   "tree_layout": false,
@@ -44,7 +43,6 @@ All settings can be configured via `config.json` in the same directory as `track
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
 | `stale_minutes` | int | `30` | Minutes before a worktree is marked as stale. Stale worktrees show a warning indicator and full bar. |
-| `colorblind` | bool | `false` | Use protanopia-friendly color scheme (blue/cyan instead of green/red, ⚠ icon for stale). |
 | `interval_seconds` | float | `2.0` | How often to poll the Conductor database for changes (in seconds). |
 | `show_hierarchy` | bool | `true` | Show PR-based hierarchy structure. When false, shows flat list. |
 | `tree_layout` | bool | `false` | Use traditional tree layout. When false (default), uses compact radial/column layout. |
@@ -62,7 +60,6 @@ CLI arguments override config.json values:
 python3 tracker.py [options]
 
 --stale MINUTES      Minutes before worktree shows as stale
---colorblind         Use protanopia-friendly color scheme
 --interval SECONDS   Database polling interval in seconds
 --no-hierarchy       Disable PR hierarchy, show flat list
 --tree               Use tree layout instead of default radial
@@ -121,12 +118,12 @@ Tracking: 4 worktrees | Session: 15m
 
 The bar grows as time since last activity increases:
 
-| Time | Bar | Color (normal) | Color (colorblind) |
-|------|-----|----------------|-------------------|
-| 0-5 min | `█` to `██` | Green | Blue |
-| 5-15 min | `███` to `█████` | Yellow | Cyan |
-| 15-30 min | `██████` to `████████` | Orange | White |
-| 30+ min | `██████████` | Red + `!` | Magenta + `⚠` |
+| Time | Bar | Color |
+|------|-----|-------|
+| 0-5 min | `█` to `██` | Green |
+| 5-15 min | `███` to `█████` | Yellow |
+| 15-30 min | `██████` to `████████` | Orange |
+| 30+ min | `██████████` | Red + `!` |
 
 ### Session Status Icons
 

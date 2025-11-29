@@ -1,6 +1,5 @@
 {
   "stale_minutes": 30,
-  "colorblind": false,
   "interval_seconds": 2.0,
   "show_hierarchy": true,
   "tree_layout": false,

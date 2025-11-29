@@ -37,7 +37,6 @@ CONFIG_FILE = Path(__file__).parent / "config.json"
 # Default configuration values
 DEFAULT_CONFIG = {
     "stale_minutes": 30,
-    "colorblind": False,
     "interval_seconds": 2.0,
     "show_hierarchy": True,
     "tree_layout": False,
@@ -509,15 +508,15 @@ SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
 _spinner_idx = 0
 
 
-def get_status_icon(status: Optional[SessionStatus], colorblind: bool = False) -> str:
+def get_status_icon(status: Optional[SessionStatus]) -> str:
     """Get visual icon for session status.
 
     Returns:
         str: Status icon with color codes
-        - Working: animated spinner (◐ cycling)
+        - Working: animated spinner (green)
         - Idle: ○ (dim)
-        - Error: ✗ (red/magenta)
-        - Compacting: ⟳ (yellow/cyan)
+        - Error: ✗ (red)
+        - Compacting: ⟳ (yellow)
         - None: empty string
     """
     global _spinner_idx
@@ -526,16 +525,13 @@ def get_status_icon(status: Optional[SessionStatus], colorblind: bool = False) -
         return ""
 
     if status.is_compacting:
-        color = Colors.CYAN if colorblind else Colors.YELLOW
-        return f"{color}⟳{Colors.RESET}"
+        return f"{Colors.YELLOW}⟳{Colors.RESET}"
 
     if status.status == "working":
-        color = Colors.CYAN if colorblind else Colors.GREEN
         spinner = SPINNER_FRAMES[_spinner_idx % len(SPINNER_FRAMES)]
-        return f"{color}{spinner}{Colors.RESET}"
+        return f"{Colors.GREEN}{spinner}{Colors.RESET}"
     elif status.status == "error":
-        color = Colors.MAGENTA if colorblind else Colors.RED
-        return f"{color}✗{Colors.RESET}"
+        return f"{Colors.RED}✗{Colors.RESET}"
     else:  # idle
         return f"{Colors.DIM}○{Colors.RESET}"
 
@@ -560,7 +556,7 @@ def format_time_ago(dt: datetime) -> str:
         return f"{hours}h ago"
 
 
-def generate_bar(minutes: int, stale_threshold: int, colorblind: bool) -> tuple[str, str]:
+def generate_bar(minutes: int, stale_threshold: int) -> tuple[str, str]:
     """Generate a Unicode bar with color based on time."""
     # Calculate bar width (max 10 blocks)
     if minutes < 5:
@@ -579,25 +575,15 @@ def generate_bar(minutes: int, stale_threshold: int, colorblind: bool) -> tuple[
     full_blocks = width
     bar = BAR_CHARS[8] * full_blocks
 
-    # Determine color
-    if colorblind:
-        if minutes < 5:
-            color = Colors.BLUE
-        elif minutes < 15:
-            color = Colors.CYAN
-        elif minutes < stale_threshold:
-            color = Colors.WHITE
-        else:
-            color = Colors.MAGENTA
+    # Determine color (green -> yellow -> orange -> red)
+    if minutes < 5:
+        color = Colors.GREEN
+    elif minutes < 15:
+        color = Colors.YELLOW
+    elif minutes < stale_threshold:
+        color = Colors.ORANGE
     else:
-        if minutes < 5:
-            color = Colors.GREEN
-        elif minutes < 15:
-            color = Colors.YELLOW
-        elif minutes < stale_threshold:
-            color = Colors.ORANGE
-        else:
-            color = Colors.RED
+        color = Colors.RED
 
     return bar, color
 
@@ -606,7 +592,6 @@ def render_tree(
     trees: dict[str, TreeNode],
     session: Session,
     stale_threshold: int,
-    colorblind: bool,
     show_hierarchy: bool = True,
     show_status: bool = True,
 ) -> str:
@@ -631,14 +616,12 @@ def render_tree(
                     minutes = int((utc_now() - click.last_seen).total_seconds() / 60)
                     time_str = format_time_ago(click.last_seen)
                     datetime_str = format_datetime(click.last_seen)
-                    bar, color = generate_bar(minutes, stale_threshold, colorblind)
+                    bar, color = generate_bar(minutes, stale_threshold)
 
-                    stale_str = " STALE" if minutes >= stale_threshold else ""
-                    if colorblind and minutes >= stale_threshold:
-                        stale_str = " \u26a0"  # Warning icon
+                    stale_str = " !" if minutes >= stale_threshold else ""
 
                     # Status icon (working/idle/error) - only if show_status enabled
-                    status_icon = get_status_icon(node.session_status, colorblind) if show_status else ""
+                    status_icon = get_status_icon(node.session_status) if show_status else ""
                     status_prefix = f"{status_icon} " if status_icon else ""
 
                     line = f"{prefix}{connector}{status_prefix}{node.name}{pr_str}"
@@ -691,7 +674,6 @@ def render_radial(
     trees: dict[str, TreeNode],
     session: Session,
     stale_threshold: int,
-    colorblind: bool,
     session_statuses: dict[str, SessionStatus] = None,
     show_status: bool = True,
 ) -> str:
@@ -714,22 +696,10 @@ def render_radial(
     # Each cell stores (char, color_code or None)
     buffer = [[(' ', None) for _ in range(available_cols)] for _ in range(available_rows)]
 
-    def draw_text(x: int, y: int, text: str, color: str = None):
-        """Draw text at position, respecting bounds."""
-        if y < 0 or y >= available_rows:
-            return
-        # Strip ANSI codes for length calculation but preserve for display
-        visible_text = re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', text)
-        for i, ch in enumerate(visible_text):
-            px = x + i
-            if 0 <= px < available_cols:
-                buffer[y][px] = (ch, color)
-
     def draw_text_raw(x: int, y: int, text: str):
         """Draw raw text with embedded ANSI codes."""
         if y < 0 or y >= available_rows:
             return
-        # For raw text, we just store it as a special marker
         if 0 <= x < available_cols:
             buffer[y][x] = (text, 'RAW')
 
@@ -743,14 +713,9 @@ def render_radial(
     repo_list = list(trees.items())
     n_repos = len(repo_list)
 
-    # Center and radii for ellipse
+    # Center of the circle
     cx = available_cols // 2
     cy = available_rows // 2
-
-    # Calculate radii based on available space (leave room for content)
-    # Smaller radii to leave more room for worktree expansion
-    rx = min(available_cols // 4, 30)  # Horizontal radius
-    ry = min(available_rows // 3, 8)   # Vertical radius
 
     # Maximum width for each repo's content
     max_content_width = 35
@@ -779,10 +744,10 @@ def render_radial(
         if click:
             minutes = int((utc_now() - click.last_seen).total_seconds() / 60)
             time_str = format_time_ago(click.last_seen)
-            bar, color = generate_bar(minutes, stale_threshold, colorblind)
-            stale_str = " ⚠" if (colorblind and minutes >= stale_threshold) else ("!" if minutes >= stale_threshold else "")
+            bar, color = generate_bar(minutes, stale_threshold)
+            stale_str = " !" if minutes >= stale_threshold else ""
 
-            status_icon = get_status_icon(node.session_status, colorblind) if show_status else ""
+            status_icon = get_status_icon(node.session_status) if show_status else ""
             status_pre = f"{status_icon} " if status_icon else ""
 
             line = f"{prefix}{connector} {status_pre}{node_name}{pr_str} {color}{bar}{Colors.RESET} {time_str}{stale_str}"
@@ -807,63 +772,34 @@ def render_radial(
     # ==========================================================================
     # Minecraft Circle Layout using x² + y² = r²
     # ==========================================================================
-    # Place repos on a circle perimeter, with worktrees radiating outward
-    # Terminal chars are ~2x taller than wide, so we use an ellipse
+    # Tight ring: repos placed on circle perimeter, content radiates outward
+    # Using parametric form: x = r*cos(θ), y = r*sin(θ)
 
-    # Calculate circle parameters
-    # Radius should leave room for content (max_content_width) on all sides
-    margin = max_content_width + 2
-    rx = (available_cols - margin * 2) // 2  # Horizontal radius
-    ry = (available_rows - 4) // 2           # Vertical radius (smaller due to aspect ratio)
+    # TIGHT circle radius - repos form a ring in the middle
+    # Horizontal radius is larger due to terminal char aspect ratio (~2:1)
+    rx = 18  # Horizontal radius (tight)
+    ry = 6   # Vertical radius (tight, adjusted for char aspect ratio)
 
-    # Ensure minimum usable radius
-    rx = max(rx, 15)
-    ry = max(ry, 4)
-
-    # Calculate max lines per repo based on available space
-    max_lines_per_repo = max(3, available_rows // max(n_repos // 2 + 1, 1))
-
-    # Track used row ranges to avoid overlap
-    # Dict of x_region -> list of (y_start, y_end) tuples
-    used_regions: dict[str, list[tuple[int, int]]] = {"left": [], "right": [], "center": []}
-
-    def find_non_overlapping_y(region: str, preferred_y: int, height: int) -> int:
-        """Find a y position that doesn't overlap with existing content."""
-        used = used_regions[region]
-        y = preferred_y
-
-        for attempt in range(20):
-            overlap = False
-            for (used_start, used_end) in used:
-                # Check if proposed range overlaps with used range
-                if not (y + height <= used_start or y >= used_end):
-                    overlap = True
-                    # Move past the overlapping region
-                    y = used_end + 1
-                    break
-            if not overlap:
-                break
-
-        return max(0, min(available_rows - height, y))
+    # Calculate max lines per repo
+    max_lines_per_repo = max(3, (available_rows - 4) // (n_repos // 2 + 1))
 
     # For each repo, calculate position on circle using x² + y² = r²
-    # We use parametric form: x = r*cos(θ), y = r*sin(θ)
+    # Parametric form: x = cx + rx*cos(θ), y = cy + ry*sin(θ)
     for i, (repo_name, repo_lines) in enumerate(rendered_repos):
         # Distribute repos evenly around the circle
         # Start from top (-π/2) and go clockwise
         theta = (2 * math.pi * i / n_repos) - (math.pi / 2)
 
-        # Calculate position on ellipse (Minecraft circle formula adapted for ellipse)
+        # Calculate position on ellipse (Minecraft circle formula)
         # x² / rx² + y² / ry² = 1  =>  x = rx*cos(θ), y = ry*sin(θ)
         circle_x = int(cx + rx * math.cos(theta))
         circle_y = int(cy + ry * math.sin(theta))
 
-        # Determine content placement direction (radiate outward from center)
-        # Content should appear on the "outside" of the circle
-        dx = math.cos(theta)  # Direction vector x
-        dy = math.sin(theta)  # Direction vector y
+        # Direction vector pointing outward from center
+        dx = math.cos(theta)
+        dy = math.sin(theta)
 
-        # Truncate first to know actual height
+        # Truncate if needed
         if len(repo_lines) > max_lines_per_repo:
             truncated = repo_lines[:max_lines_per_repo - 1]
             truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
@@ -871,35 +807,30 @@ def render_radial(
 
         n_lines = len(repo_lines)
 
-        # Calculate content anchor point and region
-        # Move content outward from circle edge based on direction
-        if dx > 0.3:
-            # Right side
-            content_x = available_cols - max_content_width - 1
-            preferred_y = circle_y - n_lines // 2
-            region = "right"
-        elif dx < -0.3:
-            # Left side
-            content_x = 0
-            preferred_y = circle_y - n_lines // 2
-            region = "left"
-        else:
-            # Top or bottom (center column)
-            content_x = cx - max_content_width // 2
-            if dy < 0:
-                preferred_y = 0  # Top
+        # Content radiates OUTWARD from circle point
+        # Position content based on which direction is "outward" from center
+        if abs(dx) > abs(dy):
+            # Primarily left or right
+            if dx > 0:
+                # Right side of circle - content goes to the right
+                content_x = circle_x + 2
             else:
-                preferred_y = available_rows - n_lines  # Bottom
-            region = "center"
+                # Left side of circle - content goes to the left
+                content_x = circle_x - max_content_width - 1
+            content_y = circle_y - n_lines // 2
+        else:
+            # Primarily top or bottom
+            content_x = circle_x - max_content_width // 2
+            if dy < 0:
+                # Top of circle - content goes upward
+                content_y = circle_y - n_lines
+            else:
+                # Bottom of circle - content goes downward
+                content_y = circle_y + 1
 
-        # Find non-overlapping y position
-        content_y = find_non_overlapping_y(region, preferred_y, n_lines)
-
-        # Record this region as used
-        used_regions[region].append((content_y, content_y + n_lines))
-
-        # Clamp x to screen bounds
+        # Clamp to screen bounds
         content_x = max(0, min(available_cols - max_content_width, content_x))
+        content_y = max(0, min(available_rows - n_lines, content_y))
 
         # Draw each line of the repo content
         for j, line in enumerate(repo_lines):
@@ -973,13 +904,13 @@ def render_radial(
         # Build status line
         status_parts = []
         if working_workspaces:
-            icon = get_status_icon(SessionStatus("", "working"), colorblind)
+            icon = get_status_icon(SessionStatus("", "working"))
             status_parts.append(f"{icon} {len(working_workspaces)} working")
         if idle_workspaces:
-            icon = get_status_icon(SessionStatus("", "idle"), colorblind)
+            icon = get_status_icon(SessionStatus("", "idle"))
             status_parts.append(f"{icon} {len(idle_workspaces)} idle")
         if error_workspaces:
-            icon = get_status_icon(SessionStatus("", "error"), colorblind)
+            icon = get_status_icon(SessionStatus("", "error"))
             status_parts.append(f"{icon} {len(error_workspaces)} error")
 
         if status_parts:
@@ -1029,10 +960,6 @@ def main():
     parser.add_argument(
         "--stale", type=int, default=config["stale_minutes"],
         help=f"Minutes before a worktree is marked as stale (default: {config['stale_minutes']})"
-    )
-    parser.add_argument(
-        "--colorblind", action="store_true", default=config["colorblind"],
-        help="Use protanopia-friendly color scheme"
     )
     parser.add_argument(
         "--interval", type=float, default=config["interval_seconds"],
@@ -1201,14 +1128,14 @@ def main():
                 clear_screen()
             if args.tree:
                 output = render_tree(
-                    trees, session, args.stale, args.colorblind,
+                    trees, session, args.stale,
                     show_hierarchy=not args.no_hierarchy,
                     show_status=not args.no_status
                 )
             else:
                 # Radial is default
                 output = render_radial(
-                    trees, session, args.stale, args.colorblind,
+                    trees, session, args.stale,
                     session_statuses=session_statuses,
                     show_status=not args.no_status
                 )
