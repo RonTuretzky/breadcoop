@@ -889,11 +889,25 @@ def render_radial(
         working_workspaces = []
         error_workspaces = []
 
-        # Collect workspace info by status
+        # Build workspace_id -> display_name mapping from trees (uses PR titles when available)
+        def collect_display_names(node: TreeNode, names: dict):
+            if node.workspace_id:
+                names[node.workspace_id] = node.name
+            for child in node.children:
+                collect_display_names(child, names)
+
+        workspace_display_names = {}
+        for repo_name, root in trees.items():
+            collect_display_names(root, workspace_display_names)
+
+        # Collect workspace info by status, using PR titles where available
         for ws_id, status in session_statuses.items():
-            # Find workspace name from session clicks
             if ws_id in session.clicks:
-                name = session.clicks[ws_id].name
+                # Use PR title from tree if available, else fall back to worktree name
+                name = workspace_display_names.get(ws_id, session.clicks[ws_id].name)
+                # Truncate long names for display
+                if len(name) > 25:
+                    name = name[:22] + "..."
                 if status.status == "idle":
                     idle_workspaces.append(name)
                 elif status.status == "working":
