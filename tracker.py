@@ -45,6 +45,7 @@ DEFAULT_CONFIG = {
     "since": "today",  # "today" or number of hours
     "debug": False,
     "pr_refresh_minutes": 5,
+    "show_status": True,  # Show session status (working/idle) indicators
 }
 
 
@@ -154,6 +155,15 @@ class PRInfo:
     number: int
     head_branch: str
     base_branch: str
+    title: str = ""
+
+
+@dataclass
+class SessionStatus:
+    workspace_id: str
+    status: str  # 'idle', 'working', 'error'
+    model: Optional[str] = None
+    is_compacting: bool = False
 
 
 # ============================================================================
@@ -214,6 +224,44 @@ def get_workspaces() -> list[Workspace]:
     return workspaces
 
 
+def get_session_statuses() -> dict[str, SessionStatus]:
+    """Get current session status for all workspaces with active sessions."""
+    if not CONDUCTOR_DB.exists():
+        return {}
+
+    conn = sqlite3.connect(f"file:{CONDUCTOR_DB}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    # Get the most recent session for each workspace
+    cursor.execute("""
+        SELECT
+            s.workspace_id,
+            s.status,
+            s.model,
+            s.is_compacting
+        FROM sessions s
+        WHERE s.workspace_id IS NOT NULL
+          AND s.is_hidden = 0
+        ORDER BY s.updated_at DESC
+    """)
+
+    statuses: dict[str, SessionStatus] = {}
+    for row in cursor.fetchall():
+        ws_id = row["workspace_id"]
+        # Only keep the most recent session per workspace
+        if ws_id not in statuses:
+            statuses[ws_id] = SessionStatus(
+                workspace_id=ws_id,
+                status=row["status"] or "idle",
+                model=row["model"],
+                is_compacting=bool(row["is_compacting"]),
+            )
+
+    conn.close()
+    return statuses
+
+
 # ============================================================================
 # GitHub PR Integration
 # ============================================================================
@@ -238,7 +286,7 @@ def get_open_prs(owner: str, repo: str) -> list[PRInfo]:
     try:
         result = subprocess.run(
             ["gh", "pr", "list", "--repo", f"{owner}/{repo}", "--state", "open",
-             "--json", "number,headRefName,baseRefName"],
+             "--json", "number,headRefName,baseRefName,title"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -252,6 +300,7 @@ def get_open_prs(owner: str, repo: str) -> list[PRInfo]:
                 number=pr["number"],
                 head_branch=pr["headRefName"],
                 base_branch=pr["baseRefName"],
+                title=pr.get("title", ""),
             )
             for pr in prs
         ]
@@ -301,19 +350,22 @@ def get_all_prs(
 
 @dataclass
 class TreeNode:
-    name: str
+    name: str  # Display name (PR title if has PR, else worktree name)
     branch: str
     workspace_id: Optional[str] = None
     pr_number: Optional[int] = None
+    pr_title: Optional[str] = None  # Original PR title for reference
     click_record: Optional[ClickRecord] = None
     children: list["TreeNode"] = field(default_factory=list)
     is_default_branch: bool = False
+    session_status: Optional[SessionStatus] = None
 
 
 def build_hierarchy(
     workspaces: list[Workspace],
     session: Session,
     prs_by_repo: dict[str, list[PRInfo]],
+    session_statuses: dict[str, SessionStatus] = None,
     include_pr_branches: bool = True,
     debug: bool = False,
 ) -> dict[str, TreeNode]:
@@ -342,15 +394,15 @@ def build_hierarchy(
         default_branch = repo_workspaces[0].default_branch
         prs = prs_by_repo.get(repo_name, [])
 
-        # Build PR lookup: head_branch -> (base_branch, pr_number)
-        pr_lookup: dict[str, tuple[str, int]] = {}
+        # Build PR lookup: head_branch -> (base_branch, pr_number, title)
+        pr_lookup: dict[str, tuple[str, int, str]] = {}
         for pr in prs:
-            pr_lookup[pr.head_branch] = (pr.base_branch, pr.number)
+            pr_lookup[pr.head_branch] = (pr.base_branch, pr.number, pr.title)
 
         if debug and prs:
             print(f"[DEBUG] {repo_name}: {len(prs)} PRs")
             for pr in prs[:5]:  # Show first 5
-                print(f"  PR #{pr.number}: {pr.head_branch} → {pr.base_branch}")
+                print(f"  PR #{pr.number}: {pr.head_branch} → {pr.base_branch} ({pr.title[:30]}...)")
 
         # Create root node for repo
         root = TreeNode(name=repo_name, branch="", is_default_branch=False)
@@ -364,12 +416,20 @@ def build_hierarchy(
             if ws.id in session.clicks:
                 click = session.clicks.get(ws.id)
                 pr_info = pr_lookup.get(ws.branch)
+                status = session_statuses.get(ws.id) if session_statuses else None
+                # Use PR title as display name if available, else worktree name
+                if pr_info and pr_info[2]:
+                    display_name = pr_info[2]  # PR title
+                else:
+                    display_name = ws.name  # Worktree name
                 node = TreeNode(
-                    name=ws.name,
+                    name=display_name,
                     branch=ws.branch,
                     workspace_id=ws.id,
                     pr_number=pr_info[1] if pr_info else None,
+                    pr_title=pr_info[2] if pr_info else None,
                     click_record=click,
+                    session_status=status,
                 )
                 nodes[ws.branch] = node
 
@@ -389,13 +449,17 @@ def build_hierarchy(
             # Create nodes for PR branches without worktrees
             for branch in branches_to_add:
                 pr_info = pr_lookup.get(branch)
-                # Use branch name as display name (no worktree), truncate to fit
-                display_name = branch[:18] if len(branch) > 18 else branch
+                # Use PR title as display name if available, else branch name
+                if pr_info and pr_info[2]:
+                    display_name = pr_info[2]  # PR title
+                else:
+                    display_name = branch[:18] if len(branch) > 18 else branch
                 node = TreeNode(
                     name=f"({display_name})",  # Parens indicate no worktree
                     branch=branch,
                     workspace_id=None,
                     pr_number=pr_info[1] if pr_info else None,
+                    pr_title=pr_info[2] if pr_info else None,
                     click_record=None,  # No timer for branches without worktrees
                 )
                 nodes[branch] = node
@@ -439,6 +503,48 @@ def build_hierarchy(
 # ============================================================================
 # Rendering
 # ============================================================================
+
+# Spinner frames for working status animation
+SPINNER_FRAMES = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
+_spinner_idx = 0
+
+
+def get_status_icon(status: Optional[SessionStatus], colorblind: bool = False) -> str:
+    """Get visual icon for session status.
+
+    Returns:
+        str: Status icon with color codes
+        - Working: animated spinner (◐ cycling)
+        - Idle: ○ (dim)
+        - Error: ✗ (red/magenta)
+        - Compacting: ⟳ (yellow/cyan)
+        - None: empty string
+    """
+    global _spinner_idx
+
+    if status is None:
+        return ""
+
+    if status.is_compacting:
+        color = Colors.CYAN if colorblind else Colors.YELLOW
+        return f"{color}⟳{Colors.RESET}"
+
+    if status.status == "working":
+        color = Colors.CYAN if colorblind else Colors.GREEN
+        spinner = SPINNER_FRAMES[_spinner_idx % len(SPINNER_FRAMES)]
+        return f"{color}{spinner}{Colors.RESET}"
+    elif status.status == "error":
+        color = Colors.MAGENTA if colorblind else Colors.RED
+        return f"{color}✗{Colors.RESET}"
+    else:  # idle
+        return f"{Colors.DIM}○{Colors.RESET}"
+
+
+def advance_spinner():
+    """Advance spinner to next frame."""
+    global _spinner_idx
+    _spinner_idx = (_spinner_idx + 1) % len(SPINNER_FRAMES)
+
 
 def format_time_ago(dt: datetime) -> str:
     """Format time as 'Xm ago' or 'Xh ago'."""
@@ -502,6 +608,7 @@ def render_tree(
     stale_threshold: int,
     colorblind: bool,
     show_hierarchy: bool = True,
+    show_status: bool = True,
 ) -> str:
     """Render the tree view."""
     lines = []
@@ -530,8 +637,12 @@ def render_tree(
                     if colorblind and minutes >= stale_threshold:
                         stale_str = " \u26a0"  # Warning icon
 
-                    line = f"{prefix}{connector}{node.name}{pr_str}"
-                    line = f"{line:<35} {time_str:>8}  {color}{bar}{stale_str}{Colors.RESET}  {Colors.DIM}@ {datetime_str}{Colors.RESET}"
+                    # Status icon (working/idle/error) - only if show_status enabled
+                    status_icon = get_status_icon(node.session_status, colorblind) if show_status else ""
+                    status_prefix = f"{status_icon} " if status_icon else ""
+
+                    line = f"{prefix}{connector}{status_prefix}{node.name}{pr_str}"
+                    line = f"{line:<37} {time_str:>8}  {color}{bar}{stale_str}{Colors.RESET}  {Colors.DIM}@ {datetime_str}{Colors.RESET}"
                     lines.append(line)
                 elif node.branch:  # Has a branch but no worktree click
                     # Show branch without timer (dimmed)
@@ -581,63 +692,85 @@ def render_radial(
     session: Session,
     stale_threshold: int,
     colorblind: bool,
+    session_statuses: dict[str, SessionStatus] = None,
+    show_status: bool = True,
 ) -> str:
-    """Render repos in columns with proper hierarchy preserved."""
-    lines = []
+    """Render repos in a circular layout with worktrees radiating outward."""
+    import math
+    import shutil
 
-    # Get terminal size for responsive layout
     try:
-        import shutil
         term_cols, term_rows = shutil.get_terminal_size((80, 24))
     except:
         term_cols, term_rows = 80, 24
 
-    # Calculate column width and repos per row based on terminal width
-    if term_cols >= 140:
-        repos_per_row = 3
-        col_width = 44
-        name_width = 18
-    elif term_cols >= 100:
-        repos_per_row = 2
-        col_width = 48
-        name_width = 20
-    elif term_cols >= 80:
-        repos_per_row = 2
-        col_width = 38
-        name_width = 14
-    else:
-        repos_per_row = 1
-        col_width = term_cols - 2
-        name_width = min(18, term_cols - 20)
+    # Reserve space for header/footer
+    header_lines = 2
+    footer_lines = 7
+    available_rows = max(20, term_rows - header_lines - footer_lines)
+    available_cols = term_cols - 2
 
-    header_width = min(term_cols - 2, repos_per_row * col_width)
-    lines.append(f"{Colors.BOLD}CONDUCTOR WORKTREE TRACKER{Colors.RESET}")
-    lines.append("━" * header_width)
+    # Create 2D buffer for drawing (list of lists of chars/strings)
+    # Each cell stores (char, color_code or None)
+    buffer = [[(' ', None) for _ in range(available_cols)] for _ in range(available_rows)]
+
+    def draw_text(x: int, y: int, text: str, color: str = None):
+        """Draw text at position, respecting bounds."""
+        if y < 0 or y >= available_rows:
+            return
+        # Strip ANSI codes for length calculation but preserve for display
+        visible_text = re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', text)
+        for i, ch in enumerate(visible_text):
+            px = x + i
+            if 0 <= px < available_cols:
+                buffer[y][px] = (ch, color)
+
+    def draw_text_raw(x: int, y: int, text: str):
+        """Draw raw text with embedded ANSI codes."""
+        if y < 0 or y >= available_rows:
+            return
+        # For raw text, we just store it as a special marker
+        if 0 <= x < available_cols:
+            buffer[y][x] = (text, 'RAW')
 
     if not trees:
+        lines = []
+        lines.append(f"{Colors.BOLD}CONDUCTOR WORKTREE TRACKER{Colors.RESET}")
+        lines.append("━" * available_cols)
         lines.append(f"{Colors.DIM}No worktrees visited yet. Click on workspaces in Conductor.{Colors.RESET}")
         return "\n".join(lines)
 
     repo_list = list(trees.items())
     n_repos = len(repo_list)
 
-    def render_node_compact(node: TreeNode, prefix: str, is_last: bool, col_lines: list, depth: int = 0):
-        """Render a node with hierarchy preserved, single-line per node."""
-        if not node.branch:  # Skip root node, render children directly
+    # Center and radii for ellipse
+    cx = available_cols // 2
+    cy = available_rows // 2
+
+    # Calculate radii based on available space (leave room for content)
+    # Smaller radii to leave more room for worktree expansion
+    rx = min(available_cols // 4, 30)  # Horizontal radius
+    ry = min(available_rows // 3, 8)   # Vertical radius
+
+    # Maximum width for each repo's content
+    max_content_width = 35
+    name_width = 16
+
+    def render_node_lines(node: TreeNode, prefix: str, is_last: bool, lines_out: list, depth: int = 0):
+        """Render node to list of (text, has_timer) tuples."""
+        if not node.branch:
             for i, child in enumerate(node.children):
-                render_node_compact(child, "", i == len(node.children) - 1, col_lines, 0)
+                render_node_lines(child, "", i == len(node.children) - 1, lines_out, 0)
             return
 
         connector = "└" if is_last else "├"
         pr_str = f" #{node.pr_number}" if node.pr_number else ""
         click = node.click_record
         max_name = name_width - depth * 2
-        # Smart truncation: preserve closing paren/bracket if present
+
         if len(node.name) > max_name:
             if node.name.endswith(")"):
                 node_name = node.name[:max_name-1] + ")"
-            elif node.name.endswith("]"):
-                node_name = node.name[:max_name-1] + "]"
             else:
                 node_name = node.name[:max_name]
         else:
@@ -647,59 +780,155 @@ def render_radial(
             minutes = int((utc_now() - click.last_seen).total_seconds() / 60)
             time_str = format_time_ago(click.last_seen)
             bar, color = generate_bar(minutes, stale_threshold, colorblind)
-            stale_str = ""
-            if minutes >= stale_threshold:
-                stale_str = " ⚠" if colorblind else "!"
+            stale_str = " ⚠" if (colorblind and minutes >= stale_threshold) else ("!" if minutes >= stale_threshold else "")
 
-            # Single line: connector name PR bar time
-            col_lines.append(f"{prefix}{connector} {node_name}{pr_str} {color}{bar}{Colors.RESET} {time_str}{stale_str}")
+            status_icon = get_status_icon(node.session_status, colorblind) if show_status else ""
+            status_pre = f"{status_icon} " if status_icon else ""
+
+            line = f"{prefix}{connector} {status_pre}{node_name}{pr_str} {color}{bar}{Colors.RESET} {time_str}{stale_str}"
+            lines_out.append(line)
         elif node.branch:
-            # Branch without worktree - show dimmed
-            col_lines.append(f"{prefix}{Colors.DIM}{connector} {node_name}{pr_str}{Colors.RESET}")
+            line = f"{prefix}{Colors.DIM}{connector} {node_name}{pr_str}{Colors.RESET}"
+            lines_out.append(line)
 
-        # Render children with proper indentation
         child_prefix = prefix + ("  " if is_last else "│ ")
         for i, child in enumerate(node.children):
-            render_node_compact(child, child_prefix, i == len(node.children) - 1, col_lines, depth + 1)
+            render_node_lines(child, child_prefix, i == len(node.children) - 1, lines_out, depth + 1)
 
-    row_data = []
-    for i in range(0, n_repos, repos_per_row):
-        row_data.append(repo_list[i:i + repos_per_row])
+    # Pre-render all repos
+    rendered_repos = []
+    for repo_name, root in repo_list:
+        repo_lines = []
+        repo_display = repo_name[:20] if len(repo_name) > 20 else repo_name
+        repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
+        render_node_lines(root, "", True, repo_lines)
+        rendered_repos.append((repo_name, repo_lines))
 
-    for row_repos in row_data:
-        # Build each column for this row
-        columns = []
-        max_lines = 0
+    # Radial layout: distribute repos in two columns
+    # Left side and right side, creating a visual "circle" effect
 
-        for repo_name, root in row_repos:
-            col_lines = []
-            repo_display = repo_name[:name_width + 6] if len(repo_name) > name_width + 6 else repo_name
-            col_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
+    # Calculate column positions
+    left_x = 0
+    right_x = available_cols - max_content_width - 1
 
-            # Render the tree with hierarchy
-            render_node_compact(root, "", True, col_lines)
+    # First, calculate total heights needed for each column
+    left_repos = [(name, lines) for i, (name, lines) in enumerate(rendered_repos) if i % 2 == 0]
+    right_repos = [(name, lines) for i, (name, lines) in enumerate(rendered_repos) if i % 2 == 1]
 
-            columns.append(col_lines)
-            max_lines = max(max_lines, len(col_lines))
+    left_total = sum(len(lines) for _, lines in left_repos) + len(left_repos) - 1
+    right_total = sum(len(lines) for _, lines in right_repos) + len(right_repos) - 1
 
-        # Pad columns to same height
-        for col in columns:
-            while len(col) < max_lines:
-                col.append("")
+    # If content exceeds available space, we need to truncate worktree display
+    # Calculate max lines per repo to fit
+    max_lines_per_repo = max(3, available_rows // max(len(rendered_repos) // 2, 1) - 1)
 
-        # Render row with columns side by side
-        for line_idx in range(max_lines):
-            row_line = ""
-            for col in columns:
-                cell = col[line_idx] if line_idx < len(col) else ""
-                visible_len = get_visible_length(cell)
-                padding = col_width - visible_len
-                row_line += cell + " " * max(0, padding)
-            lines.append(row_line.rstrip())
+    # Draw left column
+    left_y = 0
+    for repo_name, repo_lines in left_repos:
+        # Truncate if needed
+        if len(repo_lines) > max_lines_per_repo:
+            truncated = repo_lines[:max_lines_per_repo - 1]
+            truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
+            repo_lines = truncated
 
-        lines.append("")  # Blank line between rows
+        for j, line in enumerate(repo_lines):
+            line_y = left_y + j
+            if 0 <= line_y < available_rows:
+                draw_text_raw(left_x, line_y, line)
+        left_y += len(repo_lines) + 1
 
-    lines.append("━" * header_width)
+    # Draw right column
+    right_y = 0
+    for repo_name, repo_lines in right_repos:
+        # Truncate if needed
+        if len(repo_lines) > max_lines_per_repo:
+            truncated = repo_lines[:max_lines_per_repo - 1]
+            truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
+            repo_lines = truncated
+
+        for j, line in enumerate(repo_lines):
+            line_y = right_y + j
+            if 0 <= line_y < available_rows:
+                draw_text_raw(right_x, line_y, line)
+        right_y += len(repo_lines) + 1
+
+    # Convert buffer to output lines
+    output_lines = []
+    output_lines.append(f"{Colors.BOLD}CONDUCTOR WORKTREE TRACKER{Colors.RESET}")
+    output_lines.append("━" * available_cols)
+
+    for row in buffer:
+        line_parts = []
+        i = 0
+        while i < len(row):
+            ch, color = row[i]
+            if color == 'RAW':
+                # This is a raw string with embedded ANSI
+                line_parts.append(ch)
+                # Skip the visible length of this string
+                visible_len = get_visible_length(ch)
+                i += max(1, visible_len)
+            elif color:
+                line_parts.append(f"{color}{ch}{Colors.RESET}")
+                i += 1
+            else:
+                line_parts.append(ch)
+                i += 1
+        output_lines.append(''.join(line_parts).rstrip())
+
+    # Remove trailing empty lines but keep some structure
+    while len(output_lines) > 3 and not output_lines[-1].strip():
+        output_lines.pop()
+
+    output_lines.append("")  # Blank before status
+    lines = output_lines
+
+    # Status overlay: show summary of idle/working worktrees
+    if show_status and session_statuses:
+        idle_workspaces = []
+        working_workspaces = []
+        error_workspaces = []
+
+        # Collect workspace info by status
+        for ws_id, status in session_statuses.items():
+            # Find workspace name from session clicks
+            if ws_id in session.clicks:
+                name = session.clicks[ws_id].name
+                if status.status == "idle":
+                    idle_workspaces.append(name)
+                elif status.status == "working":
+                    working_workspaces.append(name)
+                elif status.status == "error":
+                    error_workspaces.append(name)
+
+        # Build status line
+        status_parts = []
+        if working_workspaces:
+            icon = get_status_icon(SessionStatus("", "working"), colorblind)
+            status_parts.append(f"{icon} {len(working_workspaces)} working")
+        if idle_workspaces:
+            icon = get_status_icon(SessionStatus("", "idle"), colorblind)
+            status_parts.append(f"{icon} {len(idle_workspaces)} idle")
+        if error_workspaces:
+            icon = get_status_icon(SessionStatus("", "error"), colorblind)
+            status_parts.append(f"{icon} {len(error_workspaces)} error")
+
+        if status_parts:
+            lines.append("")
+            lines.append(f"┌─ Session Status {'─' * (available_cols - 19)}┐")
+            status_line = " │ ".join(status_parts)
+            lines.append(f"│ {status_line}")
+
+            # Show idle worktrees list (compact)
+            if idle_workspaces:
+                idle_display = ", ".join(idle_workspaces[:5])
+                if len(idle_workspaces) > 5:
+                    idle_display += f" +{len(idle_workspaces) - 5} more"
+                lines.append(f"│ {Colors.DIM}Idle: {idle_display}{Colors.RESET}")
+
+            lines.append(f"└{'─' * (available_cols - 2)}┘")
+
+    lines.append("━" * available_cols)
     session_duration = utc_now() - session.started_at
     session_mins = int(session_duration.total_seconds() / 60)
     if session_mins >= 60:
@@ -763,6 +992,10 @@ def main():
     parser.add_argument(
         "--debug", action="store_true", default=config["debug"],
         help="Show debug output for click detection"
+    )
+    parser.add_argument(
+        "--no-status", action="store_true", default=not config["show_status"],
+        help="Hide session status indicators (working/idle)"
     )
 
     args = parser.parse_args()
@@ -855,8 +1088,9 @@ def main():
 
     try:
         while True:
-            # Load workspaces
+            # Load workspaces and session statuses
             workspaces = get_workspaces()
+            session_statuses = get_session_statuses()
 
             # Refresh PRs periodically (configured in config.json)
             if not args.no_prs and (utc_now() - last_pr_refresh).total_seconds() > pr_refresh_seconds:
@@ -886,8 +1120,12 @@ def main():
                             )
                 session.last_updated_at[ws.id] = ws.updated_at
 
-            # Build hierarchy
-            trees = build_hierarchy(workspaces, session, prs_by_repo, debug=args.debug)
+            # Build hierarchy with session statuses
+            trees = build_hierarchy(
+                workspaces, session, prs_by_repo,
+                session_statuses=session_statuses,
+                debug=args.debug
+            )
 
             # Render
             if not args.once:
@@ -895,12 +1133,20 @@ def main():
             if args.tree:
                 output = render_tree(
                     trees, session, args.stale, args.colorblind,
-                    show_hierarchy=not args.no_hierarchy
+                    show_hierarchy=not args.no_hierarchy,
+                    show_status=not args.no_status
                 )
             else:
                 # Radial is default
-                output = render_radial(trees, session, args.stale, args.colorblind)
+                output = render_radial(
+                    trees, session, args.stale, args.colorblind,
+                    session_statuses=session_statuses,
+                    show_status=not args.no_status
+                )
             print(output)
+
+            # Advance spinner for next frame
+            advance_spinner()
 
             if args.once:
                 break

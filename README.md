@@ -34,7 +34,8 @@ All settings can be configured via `config.json` in the same directory as `track
   "fetch_prs": true,
   "since": "today",
   "debug": false,
-  "pr_refresh_minutes": 5
+  "pr_refresh_minutes": 5,
+  "show_status": true
 }
 ```
 
@@ -51,6 +52,7 @@ All settings can be configured via `config.json` in the same directory as `track
 | `since` | string | `"today"` | Activity lookback period. Use `"today"` for all activity since midnight, or a number for hours (e.g., `"2"` for last 2 hours). |
 | `debug` | bool | `false` | Show debug output for click detection and PR hierarchy building. |
 | `pr_refresh_minutes` | int | `5` | How often to refresh PR data from GitHub while running (in minutes). |
+| `show_status` | bool | `true` | Show session status indicators (working/idle/error) for each worktree. |
 
 ## CLI Arguments
 
@@ -68,23 +70,29 @@ python3 tracker.py [options]
 --once               Run once and exit (for testing)
 --since VALUE        Activity lookback: "today" or hours
 --debug              Show debug output
+--no-status          Hide session status indicators
 ```
 
 ## Display Format
 
 ### Radial View (default)
 
-Compact column-based layout with repos side-by-side:
+Compact column-based layout with repos side-by-side, including session status:
 
 ```
 CONDUCTOR WORKTREE TRACKER
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ● gas-analyzer-rs                     ● conductor-cli
-├ sacramento █ now                    └ port-louis-v4 ███ 5m ago
-└ san-jose █ now
+├ ⠋ sacramento █ now                  └ ○ port-louis-v4 ███ 5m ago
+└ ○ san-jose █ now
 
 ● specs
-└ andorra-v2 █ now
+└ ⠋ andorra-v2 █ now
+
+┌─ Session Status ────────────────────────────────┐
+│ ⠋ 2 working │ ○ 2 idle
+│ Idle: san-jose, port-louis-v4
+└─────────────────────────────────────────────────┘
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Tracking: 4 worktrees | Session: 15m
 ```
@@ -119,6 +127,17 @@ The bar grows as time since last activity increases:
 | 5-15 min | `███` to `█████` | Yellow | Cyan |
 | 15-30 min | `██████` to `████████` | Orange | White |
 | 30+ min | `██████████` | Red + `!` | Magenta + `⚠` |
+
+### Session Status Icons
+
+Each worktree shows a status indicator based on its Claude session state:
+
+| Icon | Status | Description |
+|------|--------|-------------|
+| `⠋⠙⠹⠸` | Working | Claude is actively processing (animated spinner) |
+| `○` | Idle | Session is waiting for user input |
+| `✗` | Error | Session encountered an error |
+| `⟳` | Compacting | Context is being compacted |
 
 ### Hierarchy Symbols
 
