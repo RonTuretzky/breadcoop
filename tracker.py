@@ -721,14 +721,23 @@ def render_radial(
     max_content_width = 35
     name_width = 16
 
-    def render_node_lines(node: TreeNode, prefix: str, is_last: bool, lines_out: list, depth: int = 0):
-        """Render node to list of (text, has_timer) tuples."""
+    def render_node_lines(node: TreeNode, prefix: str, is_last: bool, lines_out: list, depth: int = 0, direction: str = "down"):
+        """Render node to list of lines.
+
+        direction: "down" (normal), "up" (inverted for top of circle),
+                   "left" or "right" (horizontal expansion)
+        """
         if not node.branch:
-            for i, child in enumerate(node.children):
-                render_node_lines(child, "", i == len(node.children) - 1, lines_out, 0)
+            # Root node - just render children
+            children = node.children
+            if direction == "up":
+                # For upward trees, reverse children order
+                children = list(reversed(children))
+            for i, child in enumerate(children):
+                is_last_child = (i == len(children) - 1)
+                render_node_lines(child, "", is_last_child, lines_out, 0, direction)
             return
 
-        connector = "└" if is_last else "├"
         pr_str = f" #{node.pr_number}" if node.pr_number else ""
         click = node.click_record
         max_name = name_width - depth * 2
@@ -741,6 +750,21 @@ def render_radial(
         else:
             node_name = node.name
 
+        # Choose connector based on direction
+        if direction == "up":
+            connector = "┌" if is_last else "├"
+        else:
+            connector = "└" if is_last else "├"
+
+        # For upward trees, render children FIRST (they appear above parent)
+        if direction == "up":
+            children = list(reversed(node.children))
+            child_prefix = prefix + ("  " if is_last else "│ ")
+            for i, child in enumerate(children):
+                is_last_child = (i == 0)  # First in reversed = last originally
+                render_node_lines(child, child_prefix, is_last_child, lines_out, depth + 1, direction)
+
+        # Render this node
         if click:
             minutes = int((utc_now() - click.last_seen).total_seconds() / 60)
             time_str = format_time_ago(click.last_seen)
@@ -756,18 +780,11 @@ def render_radial(
             line = f"{prefix}{Colors.DIM}{connector} {node_name}{pr_str}{Colors.RESET}"
             lines_out.append(line)
 
-        child_prefix = prefix + ("  " if is_last else "│ ")
-        for i, child in enumerate(node.children):
-            render_node_lines(child, child_prefix, i == len(node.children) - 1, lines_out, depth + 1)
-
-    # Pre-render all repos
-    rendered_repos = []
-    for repo_name, root in repo_list:
-        repo_lines = []
-        repo_display = repo_name[:20] if len(repo_name) > 20 else repo_name
-        repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
-        render_node_lines(root, "", True, repo_lines)
-        rendered_repos.append((repo_name, repo_lines))
+        # For downward trees, render children AFTER (they appear below parent)
+        if direction != "up":
+            child_prefix = prefix + ("  " if is_last else "│ ")
+            for i, child in enumerate(node.children):
+                render_node_lines(child, child_prefix, i == len(node.children) - 1, lines_out, depth + 1, direction)
 
     # ==========================================================================
     # Minecraft Circle Layout using x² + y² = r²
@@ -783,15 +800,13 @@ def render_radial(
     # Calculate max lines per repo
     max_lines_per_repo = max(3, (available_rows - 4) // (n_repos // 2 + 1))
 
-    # For each repo, calculate position on circle using x² + y² = r²
-    # Parametric form: x = cx + rx*cos(θ), y = cy + ry*sin(θ)
-    for i, (repo_name, repo_lines) in enumerate(rendered_repos):
+    # For each repo, calculate position and render with correct direction
+    for i, (repo_name, root) in enumerate(repo_list):
         # Distribute repos evenly around the circle
         # Start from top (-π/2) and go clockwise
         theta = (2 * math.pi * i / n_repos) - (math.pi / 2)
 
         # Calculate position on ellipse (Minecraft circle formula)
-        # x² / rx² + y² / ry² = 1  =>  x = rx*cos(θ), y = ry*sin(θ)
         circle_x = int(cx + rx * math.cos(theta))
         circle_y = int(cy + ry * math.sin(theta))
 
@@ -799,11 +814,42 @@ def render_radial(
         dx = math.cos(theta)
         dy = math.sin(theta)
 
+        # Determine tree direction based on position on circle
+        # Top of circle: trees go UP (children above parent)
+        # Bottom of circle: trees go DOWN (children below parent)
+        # Left/Right: use vertical trees for simplicity
+        if abs(dy) > abs(dx):
+            # Primarily top or bottom
+            if dy < 0:
+                direction = "up"  # Top of circle
+            else:
+                direction = "down"  # Bottom of circle
+        else:
+            direction = "down"  # Left/right sides use downward trees
+
+        # Pre-render this repo with correct direction
+        repo_lines = []
+        repo_display = repo_name[:20] if len(repo_name) > 20 else repo_name
+        if direction == "up":
+            # For upward trees, repo name comes LAST (at bottom, closest to center)
+            render_node_lines(root, "", True, repo_lines, direction=direction)
+            repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
+        else:
+            # For downward trees, repo name comes FIRST (at top, closest to center)
+            repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
+            render_node_lines(root, "", True, repo_lines, direction=direction)
+
         # Truncate if needed
         if len(repo_lines) > max_lines_per_repo:
-            truncated = repo_lines[:max_lines_per_repo - 1]
-            truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
-            repo_lines = truncated
+            if direction == "up":
+                # Keep last lines (repo name and closest children)
+                truncated = [f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}"]
+                truncated.extend(repo_lines[-(max_lines_per_repo - 1):])
+                repo_lines = truncated
+            else:
+                truncated = repo_lines[:max_lines_per_repo - 1]
+                truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
+                repo_lines = truncated
 
         n_lines = len(repo_lines)
 
@@ -823,10 +869,12 @@ def render_radial(
             content_x = circle_x - max_content_width // 2
             if dy < 0:
                 # Top of circle - content goes upward
-                content_y = circle_y - n_lines
+                # Last line (repo name) should be at circle_y
+                content_y = circle_y - n_lines + 1
             else:
                 # Bottom of circle - content goes downward
-                content_y = circle_y + 1
+                # First line (repo name) should be at circle_y
+                content_y = circle_y
 
         # Clamp to screen bounds
         content_x = max(0, min(available_cols - max_content_width, content_x))
