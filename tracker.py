@@ -931,19 +931,11 @@ def render_radial(
         circle_y = int(cy + ry * sin_t)
 
         # Determine direction based on quadrant - trees branch OUTWARD from circle
-        # Top quadrant: branch up, Bottom: branch down, Left: branch left, Right: branch down (right)
-        if abs(sin_t) > abs(cos_t):
-            # Primarily top or bottom
-            if sin_t < 0:
-                direction = "up"  # Top - branch upward (outward)
-            else:
-                direction = "down"  # Bottom - branch downward (outward)
+        # Top quadrant: branch up, All others: branch down (cleaner, no confusing mirrored connectors)
+        if abs(sin_t) > abs(cos_t) and sin_t < 0:
+            direction = "up"  # Top - branch upward (outward)
         else:
-            # Primarily left or right
-            if cos_t < 0:
-                direction = "left"  # Left - branch leftward (outward)
-            else:
-                direction = "down"  # Right - branch rightward (use down, position outward)
+            direction = "down"  # Left, Right, Bottom - use standard down rendering
 
         # Pre-render this repo with directional branching
         repo_lines = []
@@ -953,12 +945,8 @@ def render_radial(
             # For upward trees, repo name comes LAST (at bottom, closest to center)
             render_node_lines(root, "", True, repo_lines, direction=direction)
             repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
-        elif direction == "left":
-            # For left trees, repo name on right side (closest to center)
-            repo_lines.append(f"{Colors.BOLD}{repo_display}{Colors.RESET} ●")
-            render_node_lines(root, "", True, repo_lines, direction=direction)
         else:
-            # For down/right trees, repo name comes FIRST (closest to center)
+            # For down trees, repo name comes FIRST (closest to center)
             repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
             render_node_lines(root, "", True, repo_lines, direction=direction)
 
