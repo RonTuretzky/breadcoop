@@ -1,6 +1,14 @@
 # Conductor Worktree Tracker
 
-A terminal CLI tool that monitors [Conductor](https://conductor.app)'s SQLite database and displays worktrees you've visited with growing time indicators and PR hierarchy visualization.
+A terminal CLI tool that monitors [Conductor](https://conductor.app)'s SQLite database and displays worktrees you've visited with growing time indicators, PR hierarchy visualization, and CI/CD status.
+
+## Features
+
+- **Radial Layout**: Circular display with repos positioned around an ellipse, trees branching outward
+- **PR Integration**: Shows PR titles and numbers, with hierarchy based on PR base/head relationships
+- **CI/CD Status**: Live status indicators for GitHub Actions (✓ pass, ✗ fail, animated spinner for pending)
+- **Session Status**: Shows which worktrees have active Claude sessions (working/idle)
+- **Smart Branch Detection**: Detects actual git branches even when Conductor's database is stale
 
 ## Quick Start
 
@@ -16,6 +24,9 @@ python3 tracker.py --stale 5
 
 # Skip PR fetching for faster startup
 python3 tracker.py --no-prs
+
+# Show diagnostic info (terminal size, cache status)
+python3 tracker.py --diag
 ```
 
 ## Configuration
@@ -34,7 +45,10 @@ All settings can be configured via `config.json` in the same directory as `track
   "since": "today",
   "debug": false,
   "pr_refresh_minutes": 5,
-  "show_status": true
+  "show_status": true,
+  "pomodoro_enabled": false,
+  "pomodoro_work_minutes": 25,
+  "pomodoro_break_minutes": 5
 }
 ```
 
@@ -42,15 +56,18 @@ All settings can be configured via `config.json` in the same directory as `track
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `stale_minutes` | int | `30` | Minutes before a worktree is marked as stale. Stale worktrees show a warning indicator and full bar. |
-| `interval_seconds` | float | `2.0` | How often to poll the Conductor database for changes (in seconds). |
+| `stale_minutes` | int | `30` | Minutes before a worktree is marked as stale (red + `!`). |
+| `interval_seconds` | float | `2.0` | How often to poll the Conductor database for changes. |
 | `show_hierarchy` | bool | `true` | Show PR-based hierarchy structure. When false, shows flat list. |
-| `tree_layout` | bool | `false` | Use traditional tree layout. When false (default), uses compact radial/column layout. |
-| `fetch_prs` | bool | `true` | Query GitHub for open PRs to determine hierarchy. Disable for faster startup. |
-| `since` | string | `"today"` | Activity lookback period. Use `"today"` for all activity since midnight, or a number for hours (e.g., `"2"` for last 2 hours). |
+| `tree_layout` | bool | `false` | Use traditional tree layout instead of radial. |
+| `fetch_prs` | bool | `true` | Query GitHub for open PRs to determine hierarchy and show CI status. |
+| `since` | string | `"today"` | Activity lookback: `"today"` for since midnight, or hours (e.g., `"2"`). |
 | `debug` | bool | `false` | Show debug output for click detection and PR hierarchy building. |
-| `pr_refresh_minutes` | int | `5` | How often to refresh PR data from GitHub while running (in minutes). |
-| `show_status` | bool | `true` | Show session status indicators (working/idle/error) for each worktree. |
+| `pr_refresh_minutes` | int | `5` | How often to refresh PR data from GitHub. |
+| `show_status` | bool | `true` | Show session status indicators (working/idle/error). |
+| `pomodoro_enabled` | bool | `false` | Enable pomodoro timer mode with reflection prompts. |
+| `pomodoro_work_minutes` | int | `25` | Duration of work sessions in pomodoro mode. |
+| `pomodoro_break_minutes` | int | `5` | Duration of breaks in pomodoro mode. |
 
 ## CLI Arguments
 
@@ -68,30 +85,31 @@ python3 tracker.py [options]
 --since VALUE        Activity lookback: "today" or hours
 --debug              Show debug output
 --no-status          Hide session status indicators
+--pomodoro           Enable pomodoro timer mode
+--diag               Show diagnostic info (terminal size, cache status)
 ```
 
 ## Display Format
 
 ### Radial View (default)
 
-Compact column-based layout with repos side-by-side, including session status:
+Circular layout with repos positioned around an ellipse. Trees branch outward based on quadrant (up/down/left/right):
 
 ```
 CONDUCTOR WORKTREE TRACKER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-● gas-analyzer-rs                     ● conductor-cli
-├ ⠋ sacramento █ now                  └ ○ port-louis-v4 ███ 5m ago
-└ ○ san-jose █ now
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                                               ┌─ STATUS ───────────┐
+                                               │ █ ⠋ 3 WORKING █    │
+               ┌ ⠋ san-juan-v2 █ now           │   ○ 10 idle        │
+               ● etherform                     └────────────────────┘
 
-● specs
-└ ⠋ andorra-v2 █ now
+         conductor-cli ●           ● gas-killer-router
+                                   ├ ○ feat: add configu #62 ████ 7h ago !
+                                   ├ ○ fix: fail on stor #65 ███ 13m ago
+                                   └ ⠋ luxembourg █ now
 
-┌─ Session Status ────────────────────────────────┐
-│ ⠋ 2 working │ ○ 2 idle
-│ Idle: san-jose, port-louis-v4
-└─────────────────────────────────────────────────┘
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Tracking: 4 worktrees | Session: 15m
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tracking: 12 worktrees | Session: 15m
 ```
 
 ### Tree View (`--tree`)
@@ -100,15 +118,15 @@ Traditional tree layout with full hierarchy:
 
 ```
 CONDUCTOR WORKTREE TRACKER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 gas-analyzer-rs
-├── sacramento (#76)                  now  █  @ 22:45
-└── san-jose                          now  █  @ 22:45
+├── ✓ sacramento (#76)                  now  █  @ 22:45
+└── ○ san-jose                          now  █  @ 22:45
 
 conductor-cli
-└── port-louis-v4                  5m ago  ███  @ 22:40
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+└── ⠋ Add Conductor Worktree (#1)    5m ago  ███  @ 22:40
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Tracking: 4 worktrees | Session: 15m
 ```
 
@@ -134,29 +152,47 @@ Each worktree shows a status indicator based on its Claude session state:
 | `⠋⠙⠹⠸` | Working | Claude is actively processing (animated spinner) |
 | `○` | Idle | Session is waiting for user input |
 | `✗` | Error | Session encountered an error |
-| `⟳` | Compacting | Context is being compacted |
+
+### CI/CD Status Icons
+
+PRs show their GitHub Actions status:
+
+| Icon | Status | Description |
+|------|--------|-------------|
+| `✓` | Pass | All checks passed (green) |
+| `✗` | Fail | One or more checks failed (red) |
+| `⠋⠙⠹⠸` | Pending | Checks are running (animated yellow spinner) |
+
+CI status is cached to avoid GitHub API rate limits:
+- Pending PRs: refreshed every 2 minutes
+- Pass/Fail PRs: refreshed every 5 minutes
+- Max 5 API calls per refresh cycle
 
 ### Hierarchy Symbols
 
 - `●` - Repository name
 - `├` / `└` - Tree connectors
 - `#123` - PR number
+- PR titles shown instead of branch names when available
 - `(branch-name)` - Intermediate branch without worktree (dimmed)
 
 ## How It Works
 
-1. **On startup**: Loads workspaces from Conductor's SQLite database, queries GitHub for open PRs
-2. **Every N seconds**: Polls database for `updated_at` changes to detect workspace switches
-3. **PR Hierarchy**: Uses GitHub PR base/head relationships to build parent-child tree
-4. **Click Detection**: When you switch to a workspace in Conductor, its `updated_at` timestamp changes
+1. **On startup**: Loads workspaces from Conductor's SQLite database, detects actual git branches, queries GitHub for open PRs
+2. **Branch detection**: Runs `git branch --show-current` in each worktree to detect the real branch (Conductor's database may be stale if you switched branches)
+3. **Every N seconds**: Polls database for `updated_at` changes to detect workspace switches
+4. **PR Hierarchy**: Uses GitHub PR base/head relationships to build parent-child tree
+5. **CI Status**: Queries `gh pr checks` for each PR with rate-limited caching
 
 ## Dependencies
 
 - Python 3.8+
 - `tqdm` (optional, for progress bars): `pip install tqdm`
-- `gh` CLI (for GitHub PR queries): `brew install gh`
+- `gh` CLI (for GitHub PR queries and CI status): `brew install gh`
 
 ## Data Sources
 
 - **Conductor DB**: `~/Library/Application Support/com.conductor.app/conductor.db`
 - **GitHub PRs**: via `gh pr list` CLI command
+- **CI Status**: via `gh pr checks` CLI command
+- **Git branches**: via `git branch --show-current` in each worktree
