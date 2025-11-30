@@ -890,19 +890,8 @@ def render_radial(
     rx = min(available_cols // 4, 25)  # Horizontal radius
     ry = min(available_rows // 4, 10)  # Vertical radius
 
-    # Calculate max lines per repo based on available space and number of repos
-    # With many repos, reduce lines per repo to ensure all can fit
-    if n_repos <= 4:
-        max_lines_per_repo = 10
-    elif n_repos <= 6:
-        max_lines_per_repo = 6
-    else:
-        max_lines_per_repo = 4  # Minimal display for crowded layouts
-
-    # Track occupied regions to prevent overlap
-    # Each entry: (x_start, x_end, y_start, y_end)
-    occupied_regions: list[tuple[int, int, int, int]] = []
-    skipped_repos: list[str] = []
+    # Calculate max lines per repo - use available space generously
+    max_lines_per_repo = max(8, (available_rows - 6) // max(2, (n_repos + 2) // 4))
 
     # For each repo, calculate position and render with correct direction
     for i, (repo_name, root) in enumerate(repo_list):
@@ -1010,74 +999,6 @@ def render_radial(
         content_x = max(0, min(available_cols - max_content_width, content_x))
         content_y = max(0, min(available_rows - n_lines, content_y))
 
-        # Check for overlap with already-placed repos and shift down if needed
-        # Only check repos that are horizontally close (would overlap in x)
-        my_x_start = content_x
-        my_x_end = content_x + max_content_width
-
-        for attempt in range(available_rows):
-            overlap = False
-            for ox_start, ox_end, oy_start, oy_end in occupied_regions:
-                # Check if x ranges overlap (repos on same side)
-                x_overlaps = not (my_x_end < ox_start or my_x_start > ox_end)
-                if not x_overlaps:
-                    continue  # Different sides, no conflict
-
-                # Check if y ranges overlap
-                my_y_end = content_y + n_lines - 1
-                y_overlaps = not (my_y_end < oy_start or content_y > oy_end)
-                if y_overlaps:
-                    overlap = True
-                    # Shift down past the overlapping range
-                    content_y = oy_end + 1
-                    break
-
-            if not overlap:
-                break
-
-        # Clamp again after shifting
-        content_y = max(0, min(available_rows - n_lines, content_y))
-
-        # Check if we still overlap after clamping - if so, skip this repo
-        still_overlaps = False
-        for ox_start, ox_end, oy_start, oy_end in occupied_regions:
-            x_overlaps = not (my_x_end < ox_start or my_x_start > ox_end)
-            if not x_overlaps:
-                continue
-            my_y_end = content_y + n_lines - 1
-            y_overlaps = not (my_y_end < oy_start or content_y > oy_end)
-            if y_overlaps:
-                still_overlaps = True
-                break
-
-        if still_overlaps:
-            # Try to fit with minimal content (just header + 1 branch)
-            if n_lines > 2:
-                # Reduce to minimal and try again
-                repo_lines = repo_lines[:2]
-                n_lines = 2
-                content_y = max(0, min(available_rows - n_lines, circle_y - n_lines // 2))
-
-                # Re-check overlap with minimal size
-                still_overlaps = False
-                for ox_start, ox_end, oy_start, oy_end in occupied_regions:
-                    x_overlaps = not (my_x_end < ox_start or my_x_start > ox_end)
-                    if not x_overlaps:
-                        continue
-                    my_y_end = content_y + n_lines - 1
-                    y_overlaps = not (my_y_end < oy_start or content_y > oy_end)
-                    if y_overlaps:
-                        still_overlaps = True
-                        break
-
-            if still_overlaps:
-                # Still can't fit, skip it and note for user
-                skipped_repos.append(repo_name)
-                continue
-
-        # Mark this region as occupied
-        occupied_regions.append((my_x_start, my_x_end, content_y, content_y + n_lines - 1))
-
         # Draw each line of the repo content
         for j, line in enumerate(repo_lines):
             line_y = content_y + j
@@ -1112,67 +1033,91 @@ def render_radial(
     while len(output_lines) > 3 and not output_lines[-1].strip():
         output_lines.pop()
 
-    output_lines.append("")  # Blank before status
-    lines = output_lines
+    output_lines.append("")  # Blank before footer
 
-    # Status overlay: show summary of idle/working worktrees
+    # Build status box for top-right overlay
+    status_box_lines = []
     if show_status and session_statuses:
-        idle_workspaces = []
-        working_workspaces = []
-        error_workspaces = []
+        working_count = 0
+        idle_count = 0
+        error_count = 0
 
-        # Build workspace_id -> display_name mapping from trees (uses PR titles when available)
-        def collect_display_names(node: TreeNode, names: dict):
-            if node.workspace_id:
-                names[node.workspace_id] = node.name
-            for child in node.children:
-                collect_display_names(child, names)
-
-        workspace_display_names = {}
-        for repo_name, root in trees.items():
-            collect_display_names(root, workspace_display_names)
-
-        # Collect workspace info by status, using PR titles where available
         for ws_id, status in session_statuses.items():
             if ws_id in session.clicks:
-                # Use PR title from tree if available, else fall back to worktree name
-                name = workspace_display_names.get(ws_id, session.clicks[ws_id].name)
-                # Truncate long names for display (no suffix)
-                if len(name) > 28:
-                    name = name[:28]
-                if status.status == "idle":
-                    idle_workspaces.append(name)
-                elif status.status == "working":
-                    working_workspaces.append(name)
+                if status.status == "working":
+                    working_count += 1
+                elif status.status == "idle":
+                    idle_count += 1
                 elif status.status == "error":
-                    error_workspaces.append(name)
+                    error_count += 1
 
-        # Build status line
-        status_parts = []
-        if working_workspaces:
-            icon = get_status_icon(SessionStatus("", "working"))
-            status_parts.append(f"{icon} {len(working_workspaces)} working")
-        if idle_workspaces:
-            icon = get_status_icon(SessionStatus("", "idle"))
-            status_parts.append(f"{icon} {len(idle_workspaces)} idle")
-        if error_workspaces:
-            icon = get_status_icon(SessionStatus("", "error"))
-            status_parts.append(f"{icon} {len(error_workspaces)} error")
+        if working_count > 0 or idle_count > 0 or error_count > 0:
+            status_width = 22
+            spinner_icon = get_status_icon(SessionStatus("", "working"))
 
-        if status_parts:
-            lines.append("")
-            lines.append(f"┌─ Session Status {'─' * (available_cols - 19)}┐")
-            status_line = " │ ".join(status_parts)
-            lines.append(f"│ {status_line}")
+            status_box_lines.append(f"┌─ STATUS {'─' * (status_width - 11)}┐")
 
-            # Show idle worktrees list (compact)
-            if idle_workspaces:
-                idle_display = ", ".join(idle_workspaces[:5])
-                if len(idle_workspaces) > 5:
-                    idle_display += f" +{len(idle_workspaces) - 5} more"
-                lines.append(f"│ {Colors.DIM}Idle: {idle_display}{Colors.RESET}")
+            if working_count > 0:
+                w_count_str = str(working_count)
+                # Prominent: green, bold, filled blocks around it
+                w_text = f"{Colors.GREEN}{Colors.BOLD}█ {spinner_icon} {w_count_str} WORKING █{Colors.RESET}"
+                w_visible = 4 + len(w_count_str) + 10  # "█ ⠋ N WORKING █"
+                w_pad = status_width - 2 - w_visible
+                status_box_lines.append(f"│{w_text}{' ' * max(0, w_pad)}│")
 
-            lines.append(f"└{'─' * (available_cols - 2)}┘")
+            if idle_count > 0:
+                i_count_str = str(idle_count)
+                # Subdued: dim gray
+                i_text = f"{Colors.DIM}○ {i_count_str} idle{Colors.RESET}"
+                i_visible = 2 + len(i_count_str) + 5  # "○ N idle"
+                i_pad = status_width - 4 - i_visible
+                status_box_lines.append(f"│  {i_text}{' ' * max(0, i_pad)} │")
+
+            if error_count > 0:
+                e_count_str = str(error_count)
+                e_text = f"{Colors.RED}✗ {e_count_str} error{Colors.RESET}"
+                e_visible = 2 + len(e_count_str) + 6
+                e_pad = status_width - 4 - e_visible
+                status_box_lines.append(f"│  {e_text}{' ' * max(0, e_pad)} │")
+
+            status_box_lines.append(f"└{'─' * (status_width - 2)}┘")
+
+    # Overlay status box in top-right corner
+    if status_box_lines:
+        status_width = 22
+        for i, status_line in enumerate(status_box_lines):
+            target_idx = 2 + i  # Start after header lines
+            if target_idx < len(output_lines):
+                existing = output_lines[target_idx]
+                existing_visible = get_visible_length(existing)
+                target_x = available_cols - status_width - 1
+
+                if existing_visible < target_x:
+                    # Pad existing line and append status box
+                    output_lines[target_idx] = existing + ' ' * (target_x - existing_visible) + status_line
+                else:
+                    # Truncate existing and add status box with ellipsis
+                    # Find where to cut (accounting for ANSI codes)
+                    cut_point = 0
+                    visible_count = 0
+                    in_ansi = False
+                    for j, ch in enumerate(existing):
+                        if ch == '\x1b':
+                            in_ansi = True
+                        elif in_ansi and ch == 'm':
+                            in_ansi = False
+                        elif not in_ansi:
+                            visible_count += 1
+                            if visible_count >= target_x - 4:
+                                cut_point = j
+                                break
+                        cut_point = j + 1
+                    output_lines[target_idx] = existing[:cut_point] + f"{Colors.RESET}... " + status_line
+            else:
+                # Add new line for status box
+                output_lines.append(' ' * (available_cols - status_width - 1) + status_line)
+
+    lines = output_lines
 
     # Pomodoro timer display
     if pomodoro and pomodoro.enabled:
@@ -1204,11 +1149,6 @@ def render_radial(
         lines.append(f"│ {timer_color}{phase_label}: {remaining}m remaining{Colors.RESET}  [{pomo_bar}]")
         lines.append(f"│ {Colors.DIM}Session #{pomodoro.session_count}{Colors.RESET}")
         lines.append(f"└{'─' * (available_cols - 2)}┘")
-
-    # Show skipped repos warning if any couldn't fit
-    if skipped_repos:
-        lines.append(f"{Colors.DIM}(+{len(skipped_repos)} more repos not shown: use --tree for full view){Colors.RESET}")
-        lines.append("")
 
     lines.append("━" * available_cols)
     session_duration = utc_now() - session.started_at
