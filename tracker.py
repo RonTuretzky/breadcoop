@@ -1140,14 +1140,13 @@ def main():
     else:
         progress("PR fetching disabled (--no-prs)", done=True)
 
-    # Re-sync timestamps right before entering main loop
+    # Re-sync the baseline timestamps right before entering main loop
     # (PR fetching may have taken time during which DB was updated)
+    # NOTE: We only sync last_updated_at (for click detection baseline),
+    # NOT last_seen (which should only update on actual user clicks)
     fresh_workspaces = get_workspaces()
     for ws in fresh_workspaces:
         session.last_updated_at[ws.id] = ws.updated_at
-        # Also update last_seen for tracked workspaces to reflect actual DB time
-        if ws.id in session.clicks:
-            session.clicks[ws.id].last_seen = ws.updated_at
 
     print()
     print(f"Press Ctrl+C to exit. Refreshing every {args.interval}s...\n")
