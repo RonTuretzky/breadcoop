@@ -889,10 +889,10 @@ def render_radial(
     cx = available_cols // 2
     cy = available_rows // 2
 
-    # Maximum width for each repo's content
+    # Maximum width for each repo's content - scale with terminal width
     # Keep narrow enough that left/right sides don't overlap (< half of available_cols)
-    max_content_width = min(30, available_cols // 2 - 5)
-    name_width = 14
+    max_content_width = max(30, min(50, available_cols // 2 - 5))
+    name_width = min(20, max_content_width // 2)
 
     def render_node_lines(node: TreeNode, prefix: str, is_last: bool, lines_out: list, depth: int = 0, direction: str = "down"):
         """Render node to list of lines.
@@ -981,12 +981,14 @@ def render_radial(
     # Large ellipse: repos positioned around the perimeter
     # All trees use simple "down" direction for clarity
 
-    # EXPANDED circle radius - use more of the screen
-    rx = min(available_cols // 3, 45)  # Horizontal radius (much larger)
-    ry = min(available_rows // 3, 18)  # Vertical radius (much larger)
+    # EXPANDED circle radius - scale with terminal size, no hard caps
+    rx = available_cols // 3  # Horizontal radius scales with width
+    ry = available_rows // 3  # Vertical radius scales with height
 
-    # Calculate max lines per repo
-    max_lines_per_repo = max(4, min(10, (available_rows - 4) // max(3, n_repos // 3)))
+    # Calculate max lines per repo - scale with available space
+    # With more vertical space, show more branches per repo
+    # Use a generous formula: at least 6 lines, up to 1/3 of screen height
+    max_lines_per_repo = max(6, available_rows // 3)
 
     # Track placed repos for collision avoidance: list of (x_start, x_end, y_start, y_end)
     placed_regions = []
