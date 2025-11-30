@@ -7,5 +7,9 @@
   "since": "today",
   "debug": false,
   "pr_refresh_minutes": 5,
-  "show_status": true
+  "show_status": true,
+  "pomodoro_enabled": false,
+  "pomodoro_work_minutes": 25,
+  "pomodoro_break_minutes": 5,
+  "pomodoro_reflections_file": "reflections.md"
 }

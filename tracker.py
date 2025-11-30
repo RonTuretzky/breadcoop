@@ -45,6 +45,10 @@ DEFAULT_CONFIG = {
     "debug": False,
     "pr_refresh_minutes": 5,
     "show_status": True,  # Show session status (working/idle) indicators
+    "pomodoro_enabled": False,
+    "pomodoro_work_minutes": 25,
+    "pomodoro_break_minutes": 5,
+    "pomodoro_reflections_file": "reflections.md",
 }
 
 
@@ -165,6 +169,46 @@ class SessionStatus:
     is_compacting: bool = False
 
 
+@dataclass
+class PomodoroState:
+    """Track pomodoro timer state."""
+    enabled: bool = False
+    work_minutes: int = 25
+    break_minutes: int = 5
+    phase: str = "work"  # "work" or "break"
+    phase_started_at: datetime = field(default_factory=_utc_now_factory)
+    session_count: int = 0  # Number of completed work sessions
+    reflections_file: str = "reflections.md"
+
+    def minutes_remaining(self) -> int:
+        """Get minutes remaining in current phase."""
+        elapsed = (utc_now() - self.phase_started_at).total_seconds() / 60
+        phase_duration = self.work_minutes if self.phase == "work" else self.break_minutes
+        return max(0, int(phase_duration - elapsed))
+
+    def is_phase_complete(self) -> bool:
+        """Check if current phase is complete."""
+        return self.minutes_remaining() <= 0
+
+    def start_break(self):
+        """Transition to break phase."""
+        self.phase = "break"
+        self.phase_started_at = utc_now()
+
+    def start_work(self):
+        """Transition to work phase."""
+        self.phase = "work"
+        self.phase_started_at = utc_now()
+        self.session_count += 1
+
+    def format_timer(self) -> str:
+        """Format remaining time as MM:SS."""
+        remaining = self.minutes_remaining()
+        mins = remaining
+        secs = int((self.minutes_remaining() * 60) % 60)
+        return f"{mins:02d}:{secs:02d}"
+
+
 # ============================================================================
 # Database Access
 # ============================================================================
@@ -259,6 +303,40 @@ def get_session_statuses() -> dict[str, SessionStatus]:
 
     conn.close()
     return statuses
+
+
+def get_last_user_message_times() -> dict[str, datetime]:
+    """Get last_user_message_at for all workspaces with sessions.
+
+    This is more accurate than updated_at for determining when the user
+    was actually active in a workspace (vs background session updates).
+    """
+    if not CONDUCTOR_DB.exists():
+        return {}
+
+    conn = sqlite3.connect(f"file:{CONDUCTOR_DB}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT s.workspace_id, MAX(s.last_user_message_at) as last_user_message_at
+        FROM sessions s
+        WHERE s.workspace_id IS NOT NULL
+          AND s.is_hidden = 0
+          AND s.last_user_message_at IS NOT NULL
+        GROUP BY s.workspace_id
+    """)
+
+    result: dict[str, datetime] = {}
+    for row in cursor.fetchall():
+        ws_id = row["workspace_id"]
+        timestamp = row["last_user_message_at"]
+        if timestamp:
+            # Parse UTC timestamp from database
+            result[ws_id] = datetime.fromisoformat(timestamp.replace("Z", ""))
+
+    conn.close()
+    return result
 
 
 # ============================================================================
@@ -676,6 +754,7 @@ def render_radial(
     stale_threshold: int,
     session_statuses: dict[str, SessionStatus] = None,
     show_status: bool = True,
+    pomodoro: Optional[PomodoroState] = None,
 ) -> str:
     """Render repos in a circular layout with worktrees radiating outward."""
     import math
@@ -718,8 +797,9 @@ def render_radial(
     cy = available_rows // 2
 
     # Maximum width for each repo's content
-    max_content_width = 35
-    name_width = 16
+    # Keep narrow enough that left/right sides don't overlap (< half of available_cols)
+    max_content_width = min(30, available_cols // 2 - 5)
+    name_width = 14
 
     def render_node_lines(node: TreeNode, prefix: str, is_last: bool, lines_out: list, depth: int = 0, direction: str = "down"):
         """Render node to list of lines.
@@ -810,8 +890,19 @@ def render_radial(
     rx = min(available_cols // 4, 25)  # Horizontal radius
     ry = min(available_rows // 4, 10)  # Vertical radius
 
-    # Calculate max lines per repo - use available space generously
-    max_lines_per_repo = max(8, (available_rows - 6) // max(2, (n_repos + 2) // 4))
+    # Calculate max lines per repo based on available space and number of repos
+    # With many repos, reduce lines per repo to ensure all can fit
+    if n_repos <= 4:
+        max_lines_per_repo = 10
+    elif n_repos <= 6:
+        max_lines_per_repo = 6
+    else:
+        max_lines_per_repo = 4  # Minimal display for crowded layouts
+
+    # Track occupied regions to prevent overlap
+    # Each entry: (x_start, x_end, y_start, y_end)
+    occupied_regions: list[tuple[int, int, int, int]] = []
+    skipped_repos: list[str] = []
 
     # For each repo, calculate position and render with correct direction
     for i, (repo_name, root) in enumerate(repo_list):
@@ -884,7 +975,24 @@ def render_radial(
                 content_x = circle_x + 2
             else:
                 # Left side of circle - content goes to the left
-                content_x = circle_x - max_content_width - 1
+                # BUT if there's not enough space, place it to the right instead
+                available_left = circle_x - 1
+                if available_left >= max_content_width:
+                    content_x = circle_x - max_content_width - 1
+                else:
+                    # Not enough space to the left, place inside circle (to the right)
+                    content_x = circle_x + 2
+                    # Also switch direction to down for proper tree rendering
+                    direction = "down"
+                    # Re-render with correct direction
+                    repo_lines = []
+                    repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
+                    render_node_lines(root, "", True, repo_lines, direction=direction)
+                    if len(repo_lines) > max_lines_per_repo:
+                        truncated = repo_lines[:max_lines_per_repo - 1]
+                        truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
+                        repo_lines = truncated
+                    n_lines = len(repo_lines)
             content_y = circle_y - n_lines // 2
         else:
             # Primarily top or bottom
@@ -901,6 +1009,74 @@ def render_radial(
         # Clamp to screen bounds
         content_x = max(0, min(available_cols - max_content_width, content_x))
         content_y = max(0, min(available_rows - n_lines, content_y))
+
+        # Check for overlap with already-placed repos and shift down if needed
+        # Only check repos that are horizontally close (would overlap in x)
+        my_x_start = content_x
+        my_x_end = content_x + max_content_width
+
+        for attempt in range(available_rows):
+            overlap = False
+            for ox_start, ox_end, oy_start, oy_end in occupied_regions:
+                # Check if x ranges overlap (repos on same side)
+                x_overlaps = not (my_x_end < ox_start or my_x_start > ox_end)
+                if not x_overlaps:
+                    continue  # Different sides, no conflict
+
+                # Check if y ranges overlap
+                my_y_end = content_y + n_lines - 1
+                y_overlaps = not (my_y_end < oy_start or content_y > oy_end)
+                if y_overlaps:
+                    overlap = True
+                    # Shift down past the overlapping range
+                    content_y = oy_end + 1
+                    break
+
+            if not overlap:
+                break
+
+        # Clamp again after shifting
+        content_y = max(0, min(available_rows - n_lines, content_y))
+
+        # Check if we still overlap after clamping - if so, skip this repo
+        still_overlaps = False
+        for ox_start, ox_end, oy_start, oy_end in occupied_regions:
+            x_overlaps = not (my_x_end < ox_start or my_x_start > ox_end)
+            if not x_overlaps:
+                continue
+            my_y_end = content_y + n_lines - 1
+            y_overlaps = not (my_y_end < oy_start or content_y > oy_end)
+            if y_overlaps:
+                still_overlaps = True
+                break
+
+        if still_overlaps:
+            # Try to fit with minimal content (just header + 1 branch)
+            if n_lines > 2:
+                # Reduce to minimal and try again
+                repo_lines = repo_lines[:2]
+                n_lines = 2
+                content_y = max(0, min(available_rows - n_lines, circle_y - n_lines // 2))
+
+                # Re-check overlap with minimal size
+                still_overlaps = False
+                for ox_start, ox_end, oy_start, oy_end in occupied_regions:
+                    x_overlaps = not (my_x_end < ox_start or my_x_start > ox_end)
+                    if not x_overlaps:
+                        continue
+                    my_y_end = content_y + n_lines - 1
+                    y_overlaps = not (my_y_end < oy_start or content_y > oy_end)
+                    if y_overlaps:
+                        still_overlaps = True
+                        break
+
+            if still_overlaps:
+                # Still can't fit, skip it and note for user
+                skipped_repos.append(repo_name)
+                continue
+
+        # Mark this region as occupied
+        occupied_regions.append((my_x_start, my_x_end, content_y, content_y + n_lines - 1))
 
         # Draw each line of the repo content
         for j, line in enumerate(repo_lines):
@@ -998,6 +1174,42 @@ def render_radial(
 
             lines.append(f"└{'─' * (available_cols - 2)}┘")
 
+    # Pomodoro timer display
+    if pomodoro and pomodoro.enabled:
+        remaining = pomodoro.minutes_remaining()
+        phase_icon = "🍅" if pomodoro.phase == "work" else "☕"
+        phase_label = "WORK" if pomodoro.phase == "work" else "BREAK"
+
+        # Color based on urgency
+        if pomodoro.phase == "work":
+            if remaining <= 2:
+                timer_color = Colors.RED
+            elif remaining <= 5:
+                timer_color = Colors.ORANGE
+            else:
+                timer_color = Colors.GREEN
+        else:
+            timer_color = Colors.CYAN
+
+        # Build progress bar for pomodoro
+        phase_duration = pomodoro.work_minutes if pomodoro.phase == "work" else pomodoro.break_minutes
+        elapsed = phase_duration - remaining
+        progress_pct = min(1.0, elapsed / phase_duration) if phase_duration > 0 else 0
+        bar_width = 20
+        filled = int(progress_pct * bar_width)
+        pomo_bar = "█" * filled + "░" * (bar_width - filled)
+
+        lines.append("")
+        lines.append(f"┌─ {phase_icon} Pomodoro {'─' * (available_cols - 15)}┐")
+        lines.append(f"│ {timer_color}{phase_label}: {remaining}m remaining{Colors.RESET}  [{pomo_bar}]")
+        lines.append(f"│ {Colors.DIM}Session #{pomodoro.session_count}{Colors.RESET}")
+        lines.append(f"└{'─' * (available_cols - 2)}┘")
+
+    # Show skipped repos warning if any couldn't fit
+    if skipped_repos:
+        lines.append(f"{Colors.DIM}(+{len(skipped_repos)} more repos not shown: use --tree for full view){Colors.RESET}")
+        lines.append("")
+
     lines.append("━" * available_cols)
     session_duration = utc_now() - session.started_at
     session_mins = int(session_duration.total_seconds() / 60)
@@ -1014,6 +1226,79 @@ def render_radial(
 def clear_screen():
     """Clear terminal screen."""
     print("\033[2J\033[H", end="")
+
+
+# ============================================================================
+# Pomodoro Functions
+# ============================================================================
+
+REFLECTIONS_FILE = Path(__file__).parent / "reflections.md"
+
+
+def prompt_reflection() -> str:
+    """Prompt user for a quick reflection before break.
+
+    Returns:
+        str: The user's reflection text
+    """
+    print("\n" + "=" * 60)
+    print(f"{Colors.BOLD}🍅 POMODORO BREAK TIME!{Colors.RESET}")
+    print("=" * 60)
+    print()
+    print("Before you take a break, write a quick reflection:")
+    print(f"{Colors.DIM}(What did you work on? Any insights or blockers?){Colors.RESET}")
+    print()
+
+    try:
+        reflection = input(f"{Colors.CYAN}> {Colors.RESET}")
+        return reflection.strip()
+    except (EOFError, KeyboardInterrupt):
+        return ""
+
+
+def save_reflection(reflection: str, pomodoro: PomodoroState):
+    """Save reflection to markdown file.
+
+    Args:
+        reflection: The reflection text to save
+        pomodoro: Current pomodoro state for context
+    """
+    if not reflection:
+        return
+
+    reflections_path = Path(__file__).parent / pomodoro.reflections_file
+
+    # Create file with header if it doesn't exist
+    if not reflections_path.exists():
+        with open(reflections_path, "w") as f:
+            f.write("# Pomodoro Reflections\n\n")
+            f.write("Quick notes from each work session.\n\n")
+            f.write("---\n\n")
+
+    # Append reflection with timestamp
+    now = datetime.now()
+    timestamp = now.strftime("%Y-%m-%d %H:%M")
+
+    with open(reflections_path, "a") as f:
+        f.write(f"## {timestamp} (Session #{pomodoro.session_count})\n\n")
+        f.write(f"{reflection}\n\n")
+        f.write("---\n\n")
+
+
+def show_break_screen(pomodoro: PomodoroState):
+    """Display break countdown screen.
+
+    Args:
+        pomodoro: Current pomodoro state
+    """
+    remaining = pomodoro.minutes_remaining()
+    print("\n" + "=" * 60)
+    print(f"{Colors.GREEN}{Colors.BOLD}☕ BREAK TIME - {remaining}m remaining{Colors.RESET}")
+    print("=" * 60)
+    print()
+    print("Take a break! Stretch, hydrate, look away from the screen.")
+    print()
+    print(f"{Colors.DIM}Press Enter when ready to resume work...{Colors.RESET}")
 
 
 # ============================================================================
@@ -1063,6 +1348,10 @@ def main():
         "--no-status", action="store_true", default=not config["show_status"],
         help="Hide session status indicators (working/idle)"
     )
+    parser.add_argument(
+        "--pomodoro", action="store_true", default=config["pomodoro_enabled"],
+        help="Enable pomodoro timer mode with reflection prompts"
+    )
 
     args = parser.parse_args()
 
@@ -1073,8 +1362,23 @@ def main():
     prs_by_repo: dict[str, list[PRInfo]] = {}
     last_pr_refresh = datetime.min
 
+    # Initialize pomodoro timer if enabled
+    pomodoro = PomodoroState(
+        enabled=args.pomodoro,
+        work_minutes=config["pomodoro_work_minutes"],
+        break_minutes=config["pomodoro_break_minutes"],
+        reflections_file=config["pomodoro_reflections_file"],
+    )
+    if pomodoro.enabled:
+        pomodoro.session_count = 1  # Start at session 1
+
+    # Track last_user_message_at for more accurate activity timing
+    last_user_message_times: dict[str, datetime] = {}
+
     print(f"{Colors.BOLD}Conductor Worktree Tracker{Colors.RESET}")
     print(f"Database: {CONDUCTOR_DB}")
+    if pomodoro.enabled:
+        print(f"Pomodoro: {pomodoro.work_minutes}m work / {pomodoro.break_minutes}m break")
     print()
 
     # Progress indicator helper
@@ -1096,10 +1400,13 @@ def main():
         session.last_updated_at[ws.id] = ws.updated_at
     print(f"  {Colors.GREEN}✓{Colors.RESET} Loaded {len(initial_workspaces)} workspaces")
 
-    # Step 2: Backfill recent activity
+    # Step 2: Backfill recent activity using last_user_message_at for accuracy
     cutoff = get_since_cutoff(args.since)
     since_desc = "today" if args.since == "today" else f"last {args.since}h"
     recent_workspaces = [ws for ws in initial_workspaces if ws.updated_at >= cutoff]
+
+    # Get last_user_message_at times for more accurate activity tracking
+    last_user_message_times = get_last_user_message_times()
 
     if recent_workspaces:
         if HAS_TQDM:
@@ -1115,13 +1422,15 @@ def main():
             iterator = recent_workspaces
 
         for ws in iterator:
+            # Use last_user_message_at if available, otherwise fall back to updated_at
+            last_activity = last_user_message_times.get(ws.id, ws.updated_at)
             session.clicks[ws.id] = ClickRecord(
                 workspace_id=ws.id,
                 name=ws.name,
                 repo_name=ws.repo_name,
                 branch=ws.branch,
                 first_seen=ws.updated_at,
-                last_seen=ws.updated_at,
+                last_seen=last_activity,
             )
         print(f"  {Colors.GREEN}✓{Colors.RESET} Found {len(session.clicks)} active worktrees ({since_desc})")
     else:
@@ -1153,36 +1462,56 @@ def main():
 
     try:
         while True:
+            # Handle pomodoro phase transitions
+            if pomodoro.enabled and pomodoro.is_phase_complete():
+                if pomodoro.phase == "work":
+                    # Work phase complete - prompt for reflection
+                    clear_screen()
+                    reflection = prompt_reflection()
+                    save_reflection(reflection, pomodoro)
+                    pomodoro.start_break()
+                    show_break_screen(pomodoro)
+                    try:
+                        input()  # Wait for user to press Enter
+                    except (EOFError, KeyboardInterrupt):
+                        pass
+                else:
+                    # Break phase complete - start new work session
+                    pomodoro.start_work()
+
             # Load workspaces and session statuses
             workspaces = get_workspaces()
             session_statuses = get_session_statuses()
+
+            # Refresh last_user_message_at for accurate activity timing
+            current_msg_times = get_last_user_message_times()
 
             # Refresh PRs periodically (configured in config.json)
             if not args.no_prs and (utc_now() - last_pr_refresh).total_seconds() > pr_refresh_seconds:
                 prs_by_repo = get_all_prs(workspaces)
                 last_pr_refresh = utc_now()
 
-            # Detect clicks (workspace updated_at changed since last check)
-            # Use a 1-second tolerance to avoid false positives from precision issues
-            # Also require minimum 30s gap since last_seen to avoid false positives
-            # from Conductor's internal activity (session updates, etc.)
+            # Update activity times based on last_user_message_at changes
+            for ws_id, msg_time in current_msg_times.items():
+                old_msg_time = last_user_message_times.get(ws_id)
+                if old_msg_time is None or msg_time > old_msg_time:
+                    # User sent a message - update last_seen
+                    if ws_id in session.clicks:
+                        if args.debug:
+                            print(f"[DEBUG] Message: {session.clicks[ws_id].name} at {msg_time}")
+                        session.clicks[ws_id].last_seen = msg_time
+            last_user_message_times.update(current_msg_times)
+
+            # Detect new workspaces (updated_at changed since last check)
             for ws in workspaces:
                 last_known = session.last_updated_at.get(ws.id)
                 if last_known is not None:
                     delta_seconds = (ws.updated_at - last_known).total_seconds()
                     if delta_seconds > 1.0:  # Only trigger if timestamp changed by >1 second
-                        # Check if this is likely a real click (not just background activity)
                         existing = session.clicks.get(ws.id)
-                        if existing:
-                            time_since_last = (utc_now() - existing.last_seen).total_seconds()
-                            # Only update if it's been > 30s since last seen
-                            # (avoids false positives from continuous Conductor updates)
-                            if time_since_last > 30:
-                                if args.debug:
-                                    print(f"[DEBUG] Click: {ws.name} delta={delta_seconds:.1f}s, gap={time_since_last:.0f}s")
-                                existing.last_seen = ws.updated_at
-                        else:
+                        if not existing:
                             # New workspace - add it
+                            last_activity = current_msg_times.get(ws.id, ws.updated_at)
                             if args.debug:
                                 print(f"[DEBUG] New: {ws.name} delta={delta_seconds:.1f}s")
                             session.clicks[ws.id] = ClickRecord(
@@ -1191,7 +1520,7 @@ def main():
                                 repo_name=ws.repo_name,
                                 branch=ws.branch,
                                 first_seen=ws.updated_at,
-                                last_seen=ws.updated_at,
+                                last_seen=last_activity,
                             )
                 session.last_updated_at[ws.id] = ws.updated_at
 
@@ -1216,7 +1545,8 @@ def main():
                 output = render_radial(
                     trees, session, args.stale,
                     session_statuses=session_statuses,
-                    show_status=not args.no_status
+                    show_status=not args.no_status,
+                    pomodoro=pomodoro if pomodoro.enabled else None,
                 )
             print(output)
 
