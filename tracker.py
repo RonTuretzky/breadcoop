@@ -1164,24 +1164,34 @@ def main():
 
             # Detect clicks (workspace updated_at changed since last check)
             # Use a 1-second tolerance to avoid false positives from precision issues
+            # Also require minimum 30s gap since last_seen to avoid false positives
+            # from Conductor's internal activity (session updates, etc.)
             for ws in workspaces:
                 last_known = session.last_updated_at.get(ws.id)
                 if last_known is not None:
                     delta_seconds = (ws.updated_at - last_known).total_seconds()
                     if delta_seconds > 1.0:  # Only trigger if timestamp changed by >1 second
-                        if args.debug:
-                            print(f"[DEBUG] Click: {ws.name} delta={delta_seconds:.1f}s")
-                        # This workspace was clicked/updated since last poll
-                        if ws.id in session.clicks:
-                            session.clicks[ws.id].last_seen = utc_now()
+                        # Check if this is likely a real click (not just background activity)
+                        existing = session.clicks.get(ws.id)
+                        if existing:
+                            time_since_last = (utc_now() - existing.last_seen).total_seconds()
+                            # Only update if it's been > 30s since last seen
+                            # (avoids false positives from continuous Conductor updates)
+                            if time_since_last > 30:
+                                if args.debug:
+                                    print(f"[DEBUG] Click: {ws.name} delta={delta_seconds:.1f}s, gap={time_since_last:.0f}s")
+                                existing.last_seen = ws.updated_at
                         else:
+                            # New workspace - add it
+                            if args.debug:
+                                print(f"[DEBUG] New: {ws.name} delta={delta_seconds:.1f}s")
                             session.clicks[ws.id] = ClickRecord(
                                 workspace_id=ws.id,
                                 name=ws.name,
                                 repo_name=ws.repo_name,
                                 branch=ws.branch,
-                                first_seen=utc_now(),
-                                last_seen=utc_now(),
+                                first_seen=ws.updated_at,
+                                last_seen=ws.updated_at,
                             )
                 session.last_updated_at[ws.id] = ws.updated_at
 
