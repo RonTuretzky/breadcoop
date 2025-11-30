@@ -880,124 +880,106 @@ def render_radial(
                 render_node_lines(child, child_prefix, i == len(node.children) - 1, lines_out, depth + 1, direction)
 
     # ==========================================================================
-    # Minecraft Circle Layout using x² + y² = r²
+    # Expanded Circle Layout - repos around ellipse, all using simple rendering
     # ==========================================================================
-    # Tight ring: repos placed on circle perimeter, content radiates outward
-    # Using parametric form: x = r*cos(θ), y = r*sin(θ)
+    # Large ellipse: repos positioned around the perimeter
+    # All trees use simple "down" direction for clarity
 
-    # Circle radius - repos form a ring, content expands outward
-    # Horizontal radius is larger due to terminal char aspect ratio (~2:1)
-    rx = min(available_cols // 4, 25)  # Horizontal radius
-    ry = min(available_rows // 4, 10)  # Vertical radius
+    # EXPANDED circle radius - use more of the screen
+    rx = min(available_cols // 3, 45)  # Horizontal radius (much larger)
+    ry = min(available_rows // 3, 18)  # Vertical radius (much larger)
 
-    # Calculate max lines per repo - use available space generously
-    max_lines_per_repo = max(8, (available_rows - 6) // max(2, (n_repos + 2) // 4))
+    # Calculate max lines per repo
+    max_lines_per_repo = max(4, min(10, (available_rows - 4) // max(3, n_repos // 3)))
 
-    # For each repo, calculate position and render with correct direction
+    # Track placed repos for collision avoidance: list of (x_start, x_end, y_start, y_end)
+    placed_regions = []
+
+    def find_free_position(target_x, target_y, n_lines, width):
+        """Find a free y position, shifting down if needed to avoid collisions."""
+        y = target_y
+        for _ in range(available_rows):
+            collision = False
+            for px_start, px_end, py_start, py_end in placed_regions:
+                # Check x overlap
+                my_x_end = target_x + width
+                x_overlaps = not (my_x_end < px_start or target_x > px_end)
+                if not x_overlaps:
+                    continue
+                # Check y overlap
+                my_y_end = y + n_lines - 1
+                y_overlaps = not (my_y_end < py_start or y > py_end)
+                if y_overlaps:
+                    # Shift below this region
+                    y = py_end + 1
+                    collision = True
+                    break
+            if not collision:
+                break
+        return max(0, min(available_rows - n_lines, y))
+
+    # For each repo, calculate position and render
     for i, (repo_name, root) in enumerate(repo_list):
         # Distribute repos evenly around the circle
         # Start from top (-π/2) and go clockwise
         theta = (2 * math.pi * i / n_repos) - (math.pi / 2)
 
-        # Calculate position on ellipse (Minecraft circle formula)
-        circle_x = int(cx + rx * math.cos(theta))
-        circle_y = int(cy + ry * math.sin(theta))
+        # Calculate position on ellipse
+        cos_t = math.cos(theta)
+        sin_t = math.sin(theta)
+        circle_x = int(cx + rx * cos_t)
+        circle_y = int(cy + ry * sin_t)
 
-        # Direction vector pointing outward from center
-        dx = math.cos(theta)
-        dy = math.sin(theta)
+        # ALWAYS use simple "down" direction - no confusing mirrored connectors
+        direction = "down"
 
-        # Determine tree direction based on position on circle
-        # Top of circle: trees go UP (children above parent)
-        # Bottom of circle: trees go DOWN (children below parent)
-        # Left of circle: trees go LEFT (mirrored connectors)
-        # Right of circle: trees go DOWN (normal)
-        if abs(dy) > abs(dx):
-            # Primarily top or bottom
-            if dy < 0:
-                direction = "up"  # Top of circle
-            else:
-                direction = "down"  # Bottom of circle
-        else:
-            # Primarily left or right
-            if dx < 0:
-                direction = "left"  # Left side - mirrored
-            else:
-                direction = "down"  # Right side - normal
-
-        # Pre-render this repo with correct direction
+        # Pre-render this repo
         repo_lines = []
-        repo_display = repo_name[:20] if len(repo_name) > 20 else repo_name
-        if direction == "up":
-            # For upward trees, repo name comes LAST (at bottom, closest to center)
-            render_node_lines(root, "", True, repo_lines, direction=direction)
-            repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
-        elif direction == "left":
-            # For left trees, repo name on right (closest to center), content on left
-            repo_lines.append(f"{Colors.BOLD}{repo_display}{Colors.RESET} ●")
-            render_node_lines(root, "", True, repo_lines, direction=direction)
-        else:
-            # For downward trees, repo name comes FIRST (at top, closest to center)
-            repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
-            render_node_lines(root, "", True, repo_lines, direction=direction)
+        repo_display = repo_name[:22] if len(repo_name) > 22 else repo_name
+        repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
+        render_node_lines(root, "", True, repo_lines, direction=direction)
 
         # Truncate if needed
         if len(repo_lines) > max_lines_per_repo:
-            if direction == "up":
-                # Keep last lines (repo name and closest children)
-                truncated = [f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}"]
-                truncated.extend(repo_lines[-(max_lines_per_repo - 1):])
-                repo_lines = truncated
-            else:
-                truncated = repo_lines[:max_lines_per_repo - 1]
-                truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
-                repo_lines = truncated
+            truncated = repo_lines[:max_lines_per_repo - 1]
+            truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
+            repo_lines = truncated
 
         n_lines = len(repo_lines)
 
-        # Content radiates OUTWARD from circle point
-        # Position content based on which direction is "outward" from center
-        if abs(dx) > abs(dy):
-            # Primarily left or right
-            if dx > 0:
-                # Right side of circle - content goes to the right
-                content_x = circle_x + 2
+        # Position content based on which side of circle
+        # Left side (cos < 0): content at left edge
+        # Right side (cos >= 0): content at right edge
+        # Top/bottom: content centered horizontally at circle position
+        if abs(cos_t) > 0.5:
+            # Primarily left or right side
+            if cos_t < 0:
+                # Left side - anchor content to left edge
+                content_x = 1
             else:
-                # Left side of circle - content goes to the left
-                # BUT if there's not enough space, place it to the right instead
-                available_left = circle_x - 1
-                if available_left >= max_content_width:
-                    content_x = circle_x - max_content_width - 1
-                else:
-                    # Not enough space to the left, place inside circle (to the right)
-                    content_x = circle_x + 2
-                    # Also switch direction to down for proper tree rendering
-                    direction = "down"
-                    # Re-render with correct direction
-                    repo_lines = []
-                    repo_lines.append(f"● {Colors.BOLD}{repo_display}{Colors.RESET}")
-                    render_node_lines(root, "", True, repo_lines, direction=direction)
-                    if len(repo_lines) > max_lines_per_repo:
-                        truncated = repo_lines[:max_lines_per_repo - 1]
-                        truncated.append(f"  {Colors.DIM}... +{len(repo_lines) - max_lines_per_repo + 1} more{Colors.RESET}")
-                        repo_lines = truncated
-                    n_lines = len(repo_lines)
+                # Right side - anchor content to right edge
+                content_x = available_cols - max_content_width - 1
+            # Y position follows the circle
             content_y = circle_y - n_lines // 2
         else:
-            # Primarily top or bottom
+            # Top or bottom - center horizontally
             content_x = circle_x - max_content_width // 2
-            if dy < 0:
-                # Top of circle - content goes upward
-                # Last line (repo name) should be at circle_y
+            if sin_t < 0:
+                # Top - content above circle point
                 content_y = circle_y - n_lines + 1
             else:
-                # Bottom of circle - content goes downward
-                # First line (repo name) should be at circle_y
+                # Bottom - content below circle point
                 content_y = circle_y
 
         # Clamp to screen bounds
         content_x = max(0, min(available_cols - max_content_width, content_x))
         content_y = max(0, min(available_rows - n_lines, content_y))
+
+        # Find collision-free position
+        content_y = find_free_position(content_x, content_y, n_lines, max_content_width)
+
+        # Mark this region as occupied
+        placed_regions.append((content_x, content_x + max_content_width, content_y, content_y + n_lines - 1))
 
         # Draw each line of the repo content
         for j, line in enumerate(repo_lines):
