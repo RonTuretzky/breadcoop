@@ -291,6 +291,7 @@ def build_hierarchy(
     prs_by_repo: dict[str, list[PRInfo]],
     session_statuses: dict[str, SessionStatus] = None,
     include_pr_branches: bool = True,
+    debug: bool = False,
 ) -> dict[str, TreeNode]:
     """Build hierarchy tree for each repo with active workspaces."""
     repos_with_clicks = set()
@@ -315,6 +316,12 @@ def build_hierarchy(
         pr_lookup: dict[str, tuple[str, int, str]] = {}
         for pr in prs:
             pr_lookup[pr.head_branch] = (pr.base_branch, pr.number, pr.title)
+
+        if debug and prs:
+            print(f"[DEBUG] {repo_name}: {len(prs)} PRs")
+            for pr in prs[:5]:  # Show first 5
+                title_preview = pr.title[:30] + "..." if len(pr.title) > 30 else pr.title
+                print(f"  PR #{pr.number}: {pr.head_branch} → {pr.base_branch} ({title_preview})")
 
         root = TreeNode(name=repo_name, branch="", is_default_branch=False)
         nodes: dict[str, TreeNode] = {}
@@ -645,6 +652,9 @@ class WorktreeVisualization:
         self.config = config
         self.args = args
         self.stale_threshold = args.stale
+        self.show_hierarchy = not getattr(args, 'no_hierarchy', False)
+        self.show_status = not getattr(args, 'no_status', False)
+        self.debug = getattr(args, 'debug', False)
 
         # Session state
         self.session = Session()
@@ -692,8 +702,9 @@ class WorktreeVisualization:
         )
         self.status_text.transform = STTransform(translate=(10, 20, 0))
 
-        # Timer for updates
-        self.timer = app.Timer(interval=config["interval_seconds"], connect=self.on_timer)
+        # Timer for updates - use args.interval if available, else config
+        interval = getattr(args, 'interval', config["interval_seconds"])
+        self.timer = app.Timer(interval=interval, connect=self.on_timer)
 
         # Initial data load
         self._initial_load()
@@ -772,6 +783,8 @@ class WorktreeVisualization:
             self.session,
             self.prs_by_repo,
             session_statuses=session_statuses,
+            include_pr_branches=self.show_hierarchy,
+            debug=self.debug,
         )
 
         # Calculate 3D layout
@@ -894,35 +907,36 @@ class WorktreeVisualization:
             self.view.add(ring)
             self.time_rings.append(ring)
 
-        # Create status indicator rings for working/error nodes
-        for node in nodes:
-            if node.is_repo:
-                continue
+        # Create status indicator rings for working/error nodes (only if show_status enabled)
+        if self.show_status:
+            for node in nodes:
+                if node.is_repo:
+                    continue
 
-            if node.status == 'working' or node.is_compacting:
-                # Outer pulsing ring for working status
-                n_points = 32
-                theta = np.linspace(0, 2 * np.pi, n_points)
-                ring_radius = node.size * 2.5
+                if node.status == 'working' or node.is_compacting:
+                    # Outer pulsing ring for working status
+                    n_points = 32
+                    theta = np.linspace(0, 2 * np.pi, n_points)
+                    ring_radius = node.size * 2.5
 
-                ring_points = np.zeros((n_points, 3))
-                ring_points[:, 0] = node.position[0] + ring_radius * np.cos(theta)
-                ring_points[:, 1] = node.position[1]
-                ring_points[:, 2] = node.position[2] + ring_radius * np.sin(theta)
+                    ring_points = np.zeros((n_points, 3))
+                    ring_points[:, 0] = node.position[0] + ring_radius * np.cos(theta)
+                    ring_points[:, 1] = node.position[1]
+                    ring_points[:, 2] = node.position[2] + ring_radius * np.sin(theta)
 
-                if node.is_compacting:
-                    ring_color = np.array([1.0, 0.85, 0.2, 0.8])  # Yellow
-                else:
-                    ring_color = np.array([0.2, 1.0, 0.3, 0.8])  # Green
+                    if node.is_compacting:
+                        ring_color = np.array([1.0, 0.85, 0.2, 0.8])  # Yellow
+                    else:
+                        ring_color = np.array([0.2, 1.0, 0.3, 0.8])  # Green
 
-                ring = visuals.Line(
-                    pos=ring_points,
-                    color=ring_color,
-                    width=4,
-                    connect='strip',
-                )
-                self.view.add(ring)
-                self.status_rings.append((ring, node))
+                    ring = visuals.Line(
+                        pos=ring_points,
+                        color=ring_color,
+                        width=4,
+                        connect='strip',
+                    )
+                    self.view.add(ring)
+                    self.status_rings.append((ring, node))
 
         # Create labels for nodes with full info
         for node in nodes:
@@ -934,17 +948,17 @@ class WorktreeVisualization:
                 # Build multi-line label with all info
                 lines = []
 
-                # Status icon prefix
-                if node.is_compacting:
-                    status_icon = "⟳"  # Compacting
-                elif node.status == 'working':
-                    status_icon = "●"  # Working (will pulse)
-                elif node.status == 'error':
-                    status_icon = "✗"  # Error
-                elif node.status == 'idle':
-                    status_icon = "○"  # Idle
-                else:
-                    status_icon = ""
+                # Status icon prefix (only if show_status enabled)
+                status_icon = ""
+                if self.show_status:
+                    if node.is_compacting:
+                        status_icon = "⟳"  # Compacting
+                    elif node.status == 'working':
+                        status_icon = "●"  # Working (will pulse)
+                    elif node.status == 'error':
+                        status_icon = "✗"  # Error
+                    elif node.status == 'idle':
+                        status_icon = "○"  # Idle
 
                 # PR number and title
                 if node.pr_number:
@@ -958,7 +972,10 @@ class WorktreeVisualization:
 
                 # Time info (only for worktrees with activity)
                 if node.has_worktree and node.time_str:
-                    time_line = f"{status_icon} {node.time_str}"
+                    if status_icon:
+                        time_line = f"{status_icon} {node.time_str}"
+                    else:
+                        time_line = node.time_str
                     if node.last_seen_time:
                         time_line += f" @ {node.last_seen_time}"
                     lines.append(time_line)
@@ -1004,43 +1021,45 @@ class WorktreeVisualization:
         else:
             session_str = f"{session_mins}m"
 
-        # Count by status
-        working_nodes = [n for n in nodes if n.status == 'working' and not n.is_repo]
-        idle_nodes = [n for n in nodes if n.status == 'idle' and not n.is_repo]
-        error_nodes = [n for n in nodes if n.status == 'error' and not n.is_repo]
-        compacting_nodes = [n for n in nodes if n.is_compacting and not n.is_repo]
-        stale_nodes = [n for n in nodes if n.minutes_since_activity >= self.stale_threshold and not n.is_repo]
-
         # Build status lines
         status_lines = [
             "━━━ CONDUCTOR WORKTREE TRACKER 3D ━━━",
             "",
         ]
 
-        # Status counts with icons
-        status_parts = []
-        if working_nodes:
-            status_parts.append(f"● Working: {len(working_nodes)}")
-        if idle_nodes:
-            status_parts.append(f"○ Idle: {len(idle_nodes)}")
-        if error_nodes:
-            status_parts.append(f"✗ Error: {len(error_nodes)}")
-        if compacting_nodes:
-            status_parts.append(f"⟳ Compacting: {len(compacting_nodes)}")
+        # Status info (only if show_status enabled)
+        if self.show_status:
+            # Count by status
+            working_nodes = [n for n in nodes if n.status == 'working' and not n.is_repo]
+            idle_nodes = [n for n in nodes if n.status == 'idle' and not n.is_repo]
+            error_nodes = [n for n in nodes if n.status == 'error' and not n.is_repo]
+            compacting_nodes = [n for n in nodes if n.is_compacting and not n.is_repo]
 
-        if status_parts:
-            status_lines.append(" | ".join(status_parts))
+            # Status counts with icons
+            status_parts = []
+            if working_nodes:
+                status_parts.append(f"● Working: {len(working_nodes)}")
+            if idle_nodes:
+                status_parts.append(f"○ Idle: {len(idle_nodes)}")
+            if error_nodes:
+                status_parts.append(f"✗ Error: {len(error_nodes)}")
+            if compacting_nodes:
+                status_parts.append(f"⟳ Compacting: {len(compacting_nodes)}")
 
-        # List working worktrees
-        if working_nodes:
-            names = [n.pr_title or n.label for n in working_nodes[:3]]
-            if len(names) > 3:
-                names_str = ", ".join(names) + f" +{len(working_nodes) - 3} more"
-            else:
-                names_str = ", ".join(names)
-            status_lines.append(f"  Active: {names_str}")
+            if status_parts:
+                status_lines.append(" | ".join(status_parts))
 
-        # Stale warning
+            # List working worktrees
+            if working_nodes:
+                names = [n.pr_title or n.label for n in working_nodes[:3]]
+                if len(names) > 3:
+                    names_str = ", ".join(names) + f" +{len(working_nodes) - 3} more"
+                else:
+                    names_str = ", ".join(names)
+                status_lines.append(f"  Active: {names_str}")
+
+        # Stale warning (always show)
+        stale_nodes = [n for n in nodes if n.minutes_since_activity >= self.stale_threshold and not n.is_repo]
         if stale_nodes:
             stale_names = [n.pr_title or n.label for n in stale_nodes[:2]]
             if len(stale_nodes) > 2:
@@ -1138,6 +1157,14 @@ def main():
         help=f"Minutes before a worktree is marked as stale (default: {config['stale_minutes']})"
     )
     parser.add_argument(
+        "--interval", type=float, default=config["interval_seconds"],
+        help=f"Database polling interval in seconds (default: {config['interval_seconds']})"
+    )
+    parser.add_argument(
+        "--no-hierarchy", action="store_true", default=not config["show_hierarchy"],
+        help="Show flat list instead of PR hierarchy"
+    )
+    parser.add_argument(
         "--no-prs", action="store_true", default=not config["fetch_prs"],
         help="Skip GitHub PR queries (faster startup)"
     )
@@ -1148,6 +1175,14 @@ def main():
     parser.add_argument(
         "--since", type=str, default=config["since"],
         help="Activity lookback: 'today' or hours (default: today)"
+    )
+    parser.add_argument(
+        "--debug", action="store_true", default=config["debug"],
+        help="Show debug output for click detection and hierarchy building"
+    )
+    parser.add_argument(
+        "--no-status", action="store_true", default=not config["show_status"],
+        help="Hide session status indicators (working/idle)"
     )
 
     args = parser.parse_args()
