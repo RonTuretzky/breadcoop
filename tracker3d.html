@@ -1166,9 +1166,9 @@
             const repoMaterial = new THREE.MeshStandardMaterial({
                 color: repoColor,
                 emissive: repoColor,
-                emissiveIntensity: repoEmissiveIntensity,
-                metalness: 0.5,
-                roughness: 0.5,
+                emissiveIntensity: 0.5,  // Higher emissive for vibrant color
+                metalness: 0.1,
+                roughness: 0.8,
             });
             const repoBall = new THREE.Mesh(repoGeometry, repoMaterial);
             repoBall.position.set(repoX, 0, repoZ);
@@ -1192,17 +1192,6 @@
             const repoLabelWidth = (repoLabel.userData.canvasWidth || 256) / 80;
             repoLabel.scale.set(repoLabelWidth, 0.8, 1);
             repoGroup.add(repoLabel);
-
-            // Add default branch label below repo ball
-            const branchLabel = createTextSprite(tree.branch || 'main', {
-                fontsize: 14,
-                backgroundColor: 'rgba(99, 102, 241, 0.8)',
-                textColor: '#ffffff',
-                padding: 10
-            });
-            branchLabel.position.set(repoX, -0.8, repoZ);
-            branchLabel.scale.set(1, 0.4, 1);
-            repoGroup.add(branchLabel);
 
             // Build workspace nodes for this repo
             if (tree.children) {
@@ -1406,14 +1395,14 @@
             minutesAgo = (Date.now() - new Date(click.last_seen).getTime()) / 60000;
         }
 
-        // Create main sphere
+        // Create main sphere with vibrant color
         const geometry = new THREE.SphereGeometry(0.3, 32, 32);
         const material = new THREE.MeshStandardMaterial({
             color: color,
             emissive: color,
-            emissiveIntensity: emissiveIntensity,
-            metalness: 0.3,
-            roughness: 0.7,
+            emissiveIntensity: 0.5,  // Higher emissive for more vibrant color
+            metalness: 0.1,
+            roughness: 0.8,
         });
 
         const mesh = new THREE.Mesh(geometry, material);
