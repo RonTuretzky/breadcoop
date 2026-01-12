@@ -2387,10 +2387,63 @@
     // ============================================================================
     const avatarTextureCache = new Map();
 
+    function createCircularPlaceholder() {
+        // Create a circular placeholder canvas
+        const canvas = document.createElement('canvas');
+        const size = 64;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Draw circular background
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
+        ctx.fillStyle = '#4488ff';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        return canvas;
+    }
+
+    function createCircularAvatarTexture(img) {
+        // Create canvas and draw image with circular clip
+        const canvas = document.createElement('canvas');
+        const size = 64;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Create circular clipping path
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+
+        // Draw the image centered and scaled to fill
+        ctx.drawImage(img, 0, 0, size, size);
+
+        // Draw border
+        ctx.beginPath();
+        ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+    }
+
     function createAvatarSprite(avatarUrl) {
-        // Create sprite material with placeholder color first
+        // Create placeholder circular texture first
+        const placeholderCanvas = createCircularPlaceholder();
+        const placeholderTexture = new THREE.CanvasTexture(placeholderCanvas);
+
         const material = new THREE.SpriteMaterial({
-            color: 0x4488ff,
+            map: placeholderTexture,
+            transparent: true,
         });
         const sprite = new THREE.Sprite(material);
 
@@ -2404,13 +2457,11 @@
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function() {
-                const texture = new THREE.Texture(img);
-                texture.needsUpdate = true;
+                const texture = createCircularAvatarTexture(img);
                 avatarTextureCache.set(avatarUrl, texture);
 
-                // Update the material with the texture
+                // Update the material with the circular texture
                 material.map = texture;
-                material.color.setHex(0xffffff);  // Reset color so texture shows properly
                 material.needsUpdate = true;
             };
             img.onerror = function() {
@@ -2420,7 +2471,6 @@
         } else if (avatarUrl && avatarTextureCache.get(avatarUrl) !== 'loading' && avatarTextureCache.get(avatarUrl) !== 'error') {
             // Use cached texture
             material.map = avatarTextureCache.get(avatarUrl);
-            material.color.setHex(0xffffff);
             material.needsUpdate = true;
         }
 
