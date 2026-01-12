@@ -1959,43 +1959,35 @@
             const cy = y1 + (y2 - y1) * t;
             const cz = z1 + (z2 - z1) * t;
 
-            // Check if commit has author avatar
+            // Avatar sprite or sphere orb for commits
             const avatarUrl = commit.author_avatar_url;
+            let commitNode;
 
             if (avatarUrl) {
-                // Create avatar sprite for commits with author avatars
-                const avatarSprite = createAvatarSprite(avatarUrl, 0.18);
-                avatarSprite.position.set(cx, cy, cz);
-                avatarSprite.userData = {
-                    type: 'commit',
-                    commit: commit,
-                    github_url: commit.github_url
-                };
-                commitGroup.add(avatarSprite);
-
-                // Store in state for raycasting
-                if (!state.commitNodes) state.commitNodes = [];
-                state.commitNodes.push(avatarSprite);
+                // Use sprite for avatar - always faces camera, shows centered image
+                commitNode = createAvatarSprite(avatarUrl);
+                commitNode.scale.set(0.4, 0.4, 0.4);  // Sprite size
             } else {
-                // Fallback to commit sphere for commits without avatars
-                const commitGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+                // Fallback to sphere for commits without avatar
+                const commitGeometry = new THREE.SphereGeometry(0.15, 16, 16);
                 const commitColor = getThemeColors().commitColor;
                 const commitMaterial = new THREE.MeshBasicMaterial({
                     color: commitColor,
                 });
-                const commitMesh = new THREE.Mesh(commitGeometry, commitMaterial);
-                commitMesh.position.set(cx, cy, cz);
-                commitMesh.userData = {
-                    type: 'commit',
-                    commit: commit,
-                    github_url: commit.github_url
-                };
-                commitGroup.add(commitMesh);
-
-                // Store in state for raycasting
-                if (!state.commitNodes) state.commitNodes = [];
-                state.commitNodes.push(commitMesh);
+                commitNode = new THREE.Mesh(commitGeometry, commitMaterial);
             }
+            commitNode.position.set(cx, cy, cz);
+            commitNode.userData = {
+                type: 'commit',
+                commit: commit,
+                github_url: commit.github_url,
+                hasAvatar: !!avatarUrl
+            };
+            commitGroup.add(commitNode);
+
+            // Store in state for raycasting
+            if (!state.commitNodes) state.commitNodes = [];
+            state.commitNodes.push(commitNode);
         }
 
         // Add commit count label if there are more commits than displayed
@@ -2394,37 +2386,13 @@
     // Avatar Sprites for Commits
     // ============================================================================
     const avatarTextureCache = new Map();
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.crossOrigin = 'anonymous';
 
-    function createAvatarSprite(avatarUrl, size = 0.18) {
-        // Create a placeholder circular sprite first
-        const canvas = document.createElement('canvas');
-        const canvasSize = 64;
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-        const ctx = canvas.getContext('2d');
-
-        // Draw circular background
-        ctx.beginPath();
-        ctx.arc(canvasSize/2, canvasSize/2, canvasSize/2 - 2, 0, Math.PI * 2);
-        ctx.fillStyle = '#4488ff';
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        const placeholderTexture = new THREE.CanvasTexture(canvas);
+    function createAvatarSprite(avatarUrl) {
+        // Create sprite material with placeholder color first
         const material = new THREE.SpriteMaterial({
-            map: placeholderTexture,
-            transparent: true,
-            depthTest: false,
-            depthWrite: false
+            color: 0x4488ff,
         });
-
         const sprite = new THREE.Sprite(material);
-        sprite.scale.set(size, size, 1);
-        sprite.userData.isAvatar = true;
 
         // Load the actual avatar image
         if (avatarUrl && !avatarTextureCache.has(avatarUrl)) {
@@ -2436,35 +2404,14 @@
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = function() {
-                // Create circular avatar from loaded image
-                const avatarCanvas = document.createElement('canvas');
-                avatarCanvas.width = canvasSize;
-                avatarCanvas.height = canvasSize;
-                const avatarCtx = avatarCanvas.getContext('2d');
-
-                // Draw circular clip path
-                avatarCtx.beginPath();
-                avatarCtx.arc(canvasSize/2, canvasSize/2, canvasSize/2 - 2, 0, Math.PI * 2);
-                avatarCtx.closePath();
-                avatarCtx.clip();
-
-                // Draw the image
-                avatarCtx.drawImage(img, 0, 0, canvasSize, canvasSize);
-
-                // Add border
-                avatarCtx.beginPath();
-                avatarCtx.arc(canvasSize/2, canvasSize/2, canvasSize/2 - 2, 0, Math.PI * 2);
-                avatarCtx.strokeStyle = '#ffffff';
-                avatarCtx.lineWidth = 2;
-                avatarCtx.stroke();
-
-                const texture = new THREE.CanvasTexture(avatarCanvas);
+                const texture = new THREE.Texture(img);
                 texture.needsUpdate = true;
                 avatarTextureCache.set(avatarUrl, texture);
 
-                // Update the sprite's material
-                sprite.material.map = texture;
-                sprite.material.needsUpdate = true;
+                // Update the material with the texture
+                material.map = texture;
+                material.color.setHex(0xffffff);  // Reset color so texture shows properly
+                material.needsUpdate = true;
             };
             img.onerror = function() {
                 avatarTextureCache.set(avatarUrl, 'error');
@@ -2472,8 +2419,9 @@
             img.src = sizedUrl;
         } else if (avatarUrl && avatarTextureCache.get(avatarUrl) !== 'loading' && avatarTextureCache.get(avatarUrl) !== 'error') {
             // Use cached texture
-            sprite.material.map = avatarTextureCache.get(avatarUrl);
-            sprite.material.needsUpdate = true;
+            material.map = avatarTextureCache.get(avatarUrl);
+            material.color.setHex(0xffffff);
+            material.needsUpdate = true;
         }
 
         return sprite;
@@ -2650,13 +2598,12 @@
                         showCommitTooltip(commitNode.userData.commit);
                     }
                     foundHover = true;
-                    // Highlight commit on hover - scale up
-                    if (commitNode.userData.isAvatar) {
-                        // Avatar sprite - just scale up
-                        commitNode.scale.set(0.25, 0.25, 1);
+                    // Highlight commit on hover - scale up and change color
+                    commitNode.material.color.setHex(0xffcc00);
+                    // Scale up proportionally - sprites start at 0.4, spheres at 1
+                    if (commitNode.userData.hasAvatar) {
+                        commitNode.scale.set(0.5, 0.5, 0.5);  // 25% larger than 0.4
                     } else {
-                        // Regular mesh - change color and scale
-                        commitNode.material.color.setHex(0xffcc00);
                         commitNode.scale.set(1.5, 1.5, 1.5);
                     }
                 }
@@ -2668,12 +2615,16 @@
             const commitColor = getThemeColors().commitColor;
             state.commitNodes.forEach(cm => {
                 if (cm !== state.hoveredNode) {
-                    if (cm.userData.isAvatar) {
-                        // Avatar sprite - reset scale
-                        cm.scale.set(0.18, 0.18, 1);
+                    // Reset color (white if has avatar texture, otherwise theme color)
+                    if (cm.userData.hasAvatar && cm.material.map) {
+                        cm.material.color.setHex(0xffffff);
                     } else {
-                        // Regular mesh - reset color and scale
                         cm.material.color.setHex(commitColor);
+                    }
+                    // Reset scale - sprites use 0.4, spheres use 1
+                    if (cm.userData.hasAvatar) {
+                        cm.scale.set(0.4, 0.4, 0.4);
+                    } else {
                         cm.scale.set(1, 1, 1);
                     }
                 }
