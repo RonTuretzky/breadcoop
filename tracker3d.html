@@ -1880,25 +1880,76 @@
 
     function buildWorkspaceNodes(nodes, group, parentX, parentZ, depth, baseAngle, childIndex, githubUrl) {
         nodes.forEach((node, index) => {
+            // Calculate position for this node (used for both workspace nodes and intermediate PR nodes)
+            const spreadFactor = 0.6;
+            const angleOffset = (index - (nodes.length - 1) / 2) * spreadFactor;
+            const nodeAngle = baseAngle + angleOffset;
+            const distance = 3 + depth * 2;
+
+            const x = parentX + Math.cos(nodeAngle) * distance;
+            const z = parentZ + Math.sin(nodeAngle) * distance;
+            const y = depth * 0.3;
+
             if (!node.workspace_id) {
-                // Node without worktree - still recurse for children
+                // Node without worktree (intermediate PR) - create a dimmed placeholder node
+                // and use its position for children so hierarchy is visually correct
+                if (node.pr_number) {
+                    // Create a small dimmed sphere for the intermediate PR
+                    const themeColors = getThemeColors();
+                    const geometry = new THREE.SphereGeometry(0.15, 16, 16);
+                    const material = new THREE.MeshStandardMaterial({
+                        color: isDarkMode ? 0x666688 : 0xaaaacc,
+                        transparent: true,
+                        opacity: 0.5,
+                        metalness: 0.3,
+                        roughness: 0.7
+                    });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(x, y, z);
+                    mesh.userData = {
+                        type: 'intermediate_pr',
+                        prNumber: node.pr_number,
+                        prTitle: node.pr_title || node.name,
+                        branch: node.branch,
+                        githubUrl: githubUrl
+                    };
+                    group.add(mesh);
+
+                    // Create connection line from parent to this intermediate node
+                    const parentY = depth > 0 ? (depth - 1) * 0.3 : 0;
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(parentX, parentY, parentZ),
+                        new THREE.Vector3(x, y, z)
+                    ]);
+                    const lineMaterial = new THREE.LineBasicMaterial({
+                        color: isDarkMode ? 0x444466 : 0xaaaacc,
+                        transparent: true,
+                        opacity: 0.4
+                    });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    group.add(line);
+                    state.lines.push(line);
+
+                    // Create a floating label for the intermediate PR
+                    const labelText = `PR #${node.pr_number}`;
+                    const label = createTextSprite(labelText, {
+                        fontSize: 20,
+                        fontColor: isDarkMode ? 'rgba(150, 150, 180, 0.8)' : 'rgba(100, 100, 140, 0.8)',
+                        backgroundColor: 'transparent'
+                    });
+                    label.position.set(x, y + 0.4, z);
+                    label.scale.set(1.2, 0.4, 1);
+                    group.add(label);
+                }
+
+                // Recurse for children using THIS node's position
                 if (node.children && node.children.length > 0) {
-                    buildWorkspaceNodes(node.children, group, parentX, parentZ, depth, baseAngle, index, githubUrl);
+                    buildWorkspaceNodes(node.children, group, x, z, depth + 1, nodeAngle, index, githubUrl);
                 }
                 return;
             }
 
             if (state.hiddenWorkspaces.has(node.workspace_id)) return;
-
-            // Calculate position with more spread
-            const spreadFactor = 0.6; // Increased spread between sibling nodes
-            const angleOffset = (index - (nodes.length - 1) / 2) * spreadFactor;
-            const nodeAngle = baseAngle + angleOffset;
-            const distance = 3 + depth * 2; // Increased distance from center
-
-            const x = parentX + Math.cos(nodeAngle) * distance;
-            const z = parentZ + Math.sin(nodeAngle) * distance;
-            const y = depth * 0.3; // Slight vertical offset per depth level (going up)
 
             // Create workspace node
             const mesh = createWorkspaceNode(node, githubUrl);

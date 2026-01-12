@@ -205,9 +205,13 @@ def get_actual_git_branch(ws: Workspace) -> str:
     if not ws.root_path:
         return ws.branch
 
-    worktree_path = Path(ws.root_path) / ".conductor" / ws.name
+    # Conductor stores workspaces in ~/conductor/workspaces/<repo>/<name>
+    worktree_path = Path.home() / "conductor" / "workspaces" / ws.repo_name / ws.name
     if not worktree_path.exists():
-        return ws.branch
+        # Fallback to legacy path
+        worktree_path = Path(ws.root_path) / ".conductor" / ws.name
+        if not worktree_path.exists():
+            return ws.branch
 
     try:
         result = subprocess.run(
