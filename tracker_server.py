@@ -648,8 +648,8 @@ def build_hierarchy(
                         "name": click.name,
                         "repo_name": click.repo_name,
                         "branch": click.branch,
-                        "first_seen": click.first_seen.isoformat(),
-                        "last_seen": click.last_seen.isoformat(),
+                        "first_seen": click.first_seen.isoformat() + "Z",
+                        "last_seen": click.last_seen.isoformat() + "Z",
                     }
 
                 status_dict = None
