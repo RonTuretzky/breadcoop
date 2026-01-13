@@ -961,11 +961,12 @@
         if (avatarUrl && !avatarTextureCache.has(avatarUrl)) {
             avatarTextureCache.set(avatarUrl, 'loading');
 
-            // Load image with size parameter for smaller download
-            const sizedUrl = avatarUrl.includes('?') ? `${avatarUrl}&s=64` : `${avatarUrl}?s=64`;
-
             const img = new Image();
-            img.crossOrigin = 'anonymous';
+            // Only use crossOrigin for remote URLs, not local files
+            const isLocalPath = avatarUrl.startsWith('./') || avatarUrl.startsWith('/');
+            if (!isLocalPath) {
+                img.crossOrigin = 'anonymous';
+            }
             img.onload = function() {
                 const texture = createCircularAvatarTexture(img);
                 avatarTextureCache.set(avatarUrl, texture);
@@ -978,7 +979,8 @@
                 console.warn('Failed to load avatar:', avatarUrl);
                 avatarTextureCache.set(avatarUrl, 'error');
             };
-            img.src = sizedUrl;
+            // For local paths, use as-is; for remote, add size param
+            img.src = isLocalPath ? avatarUrl : (avatarUrl.includes('?') ? `${avatarUrl}&s=64` : `${avatarUrl}?s=64`);
         } else if (avatarUrl && avatarTextureCache.get(avatarUrl) !== 'loading' && avatarTextureCache.get(avatarUrl) !== 'error') {
             // Use cached texture
             material.map = avatarTextureCache.get(avatarUrl);

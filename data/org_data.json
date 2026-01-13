@@ -1,7 +1,7 @@
 {
   "organization": "BreadchainCoop",
-  "generated_at": "2026-01-13T17:58:25.028301+00:00",
-  "generation_time_seconds": 167.01,
+  "generated_at": "2026-01-13T18:14:58.216756+00:00",
+  "generation_time_seconds": 167.23,
   "stats": {
     "total_repos": 50,
     "repos_with_prs": 26,
@@ -46,7 +46,7 @@
               "message": "fix: storage cleanup",
               "author": "exo404",
               "author_login": "exo404",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/115696623?v=4",
+              "author_avatar_url": "./data/avatars/exo404.png",
               "date": "2026-01-12",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/74461e5296c0b545682448f63ea59e9ebfb3c218"
             }
@@ -74,7 +74,7 @@
               "message": "fix: use SafeERC20 instead of unsafe functions",
               "author": "exo404",
               "author_login": "exo404",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/115696623?v=4",
+              "author_avatar_url": "./data/avatars/exo404.png",
               "date": "2026-01-12",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/fc05b06227ea50e45006f545f7a9a3c431e371ff"
             },
@@ -84,7 +84,7 @@
               "message": "fix: use SafeERC20 in the main contract",
               "author": "exo404",
               "author_login": "exo404",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/115696623?v=4",
+              "author_avatar_url": "./data/avatars/exo404.png",
               "date": "2026-01-12",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/aed64472c59460567001a30a4f6c7f50a5f4e4f2"
             }
@@ -112,7 +112,7 @@
               "message": "fix: add ReentrancyGuardUpgradable",
               "author": "exo404",
               "author_login": "exo404",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/115696623?v=4",
+              "author_avatar_url": "./data/avatars/exo404.png",
               "date": "2026-01-12",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/8be8945493274317a5426c1b6ca3ced1eec77737"
             },
@@ -122,7 +122,7 @@
               "message": "fix: add gap variable for future upgrades",
               "author": "exo404",
               "author_login": "exo404",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/115696623?v=4",
+              "author_avatar_url": "./data/avatars/exo404.png",
               "date": "2026-01-12",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/bef1ea027225b244bb1bc9300e4695075a5fbca5"
             }
@@ -150,7 +150,7 @@
               "message": "feat: integrate etherform CI/CD pipeline",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-04",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/7df19e0e94687967223a133353938bc632227853"
             },
@@ -160,7 +160,7 @@
               "message": "refactor(script): rename Deploy.sol to Deploy.s.sol",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-04",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/1e19dc66255832a31794622fdf1dd81b0f723db9"
             },
@@ -170,7 +170,7 @@
               "message": "chore: fix OZ remappings for lib submodules",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-08",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/9b7f59a6411be01110ea4a9901d2b2437ddadb18"
             },
@@ -180,7 +180,7 @@
               "message": "chore: enable Sepolia deploy on PRs",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-08",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/164a515d974c16d06fe14b47d9a1a80977303e4a"
             },
@@ -190,7 +190,7 @@
               "message": "chore(ci): pass ADMIN_ADDRESS for testnet deploy",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-08",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/ad366ada0e3c2de2d73751aee80215570fc95145"
             }
@@ -218,7 +218,7 @@
               "message": "feat: add comprehensive static frontend specification",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-09-28",
               "html_url": "https://github.com/BreadchainCoop/saving-circles/commit/97070abd5689a5d10e5c75fd17e4c974380b0e11"
             }
@@ -267,7 +267,7 @@
               "message": "chore(deps): bump the production-dependencies group across 1 directory with 19 u",
               "author": "dependabot[bot]",
               "author_login": "dependabot[bot]",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/29110?v=4",
+              "author_avatar_url": "./data/avatars/dependabot_bot_.png",
               "date": "2026-01-12",
               "html_url": "https://github.com/BreadchainCoop/shared-quartz/commit/28fa217daccf9afc6b49f5dbe9e617300efb9510"
             }
@@ -298,7 +298,7 @@
               "message": "chore(deps): bump the ci-dependencies group across 1 directory with 7 updates",
               "author": "dependabot[bot]",
               "author_login": "dependabot[bot]",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/29110?v=4",
+              "author_avatar_url": "./data/avatars/dependabot_bot_.png",
               "date": "2025-12-15",
               "html_url": "https://github.com/BreadchainCoop/shared-quartz/commit/99b855fd82a9a42d337223feadcbb2ac9dfb9017"
             }
@@ -344,7 +344,7 @@
               "message": "feat(contracts): add local SavingCircles deployment script",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-09",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/78ba1ea530993071591e848fcff5bee6c240d316"
             },
@@ -354,7 +354,7 @@
               "message": "feat: deploy mock BREAD token + bump saving-circles submodule (invite)",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-18",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/8201375af7561d5aadfe540a4da3149f8432f6fb"
             },
@@ -364,7 +364,7 @@
               "message": "chore: track saving-circles dev branch and bump submodule",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/d4ac048146c52ff586c953bdb5d668cca8ef2a0e"
             },
@@ -374,7 +374,7 @@
               "message": "docs: add command to update submodules to latest",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/901991a328fd90fb9f779ec2644ef3909a961c58"
             },
@@ -384,7 +384,7 @@
               "message": "Resolve TS error and remove storybook files",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-12-16",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/a910f8c351a59572acb3c84210f70e721d58e3f0"
             }
@@ -411,7 +411,7 @@
                   "message": "Install updated library",
                   "author": "Olaleye Blessing",
                   "author_login": "Olaleye-Blessing",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+                  "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
                   "date": "2026-01-12",
                   "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/8b99204ff20810e4fb48d8a4f5bfad80befd6bdf"
                 }
@@ -441,7 +441,7 @@
               "message": "feat(contracts): add local SavingCircles deployment script",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-09",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/78ba1ea530993071591e848fcff5bee6c240d316"
             },
@@ -451,7 +451,7 @@
               "message": "feat: deploy mock BREAD token + bump saving-circles submodule (invite)",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-18",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/8201375af7561d5aadfe540a4da3149f8432f6fb"
             },
@@ -461,7 +461,7 @@
               "message": "chore: track saving-circles dev branch and bump submodule",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/d4ac048146c52ff586c953bdb5d668cca8ef2a0e"
             },
@@ -471,7 +471,7 @@
               "message": "docs: add command to update submodules to latest",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/901991a328fd90fb9f779ec2644ef3909a961c58"
             }
@@ -499,7 +499,7 @@
               "message": "git submodule for stack smart contracts and anvil deployment setup",
               "author": "Sara",
               "author_login": "sarace",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
+              "author_avatar_url": "./data/avatars/sarace.png",
               "date": "2025-12-08",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/fedd1f6cfbf1e4c8a280b9c96f6ad9eec7b5ebae"
             }
@@ -545,7 +545,7 @@
               "message": "feat: use sp1-cc library for tx sim",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2026-01-09",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/00f08f0d62901eae18f5e35a6d426fb833621598"
             },
@@ -555,7 +555,7 @@
               "message": "build: point to default branch for'gas-analyzer-rs' dependency",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2026-01-12",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/edbf4bad5f519ebfc94d22348b2bd8ed30cc1fb3"
             }
@@ -583,7 +583,7 @@
               "message": "feat: add Kubernetes/Helm support with K8s deployment configurations",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-20",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/8288ac442c79ebc1b73cd8ba9b3cb4e1977cdd87"
             },
@@ -593,7 +593,7 @@
               "message": "fix: add exec-based readiness probes to node and router pods",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-20",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/cf0118b132077355ebdaff3d9d94bf7fdbe2d104"
             },
@@ -603,7 +603,7 @@
               "message": "ci: run helm tests on all pull requests",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-20",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/82d7f059793968885dddd6fadc9f3d4a1c118105"
             },
@@ -613,7 +613,7 @@
               "message": "fix: add procps to Docker images for pgrep readiness probes",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-20",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/8ce7aa161aae5b030b52337b2afba7a031ead977"
             },
@@ -623,7 +623,7 @@
               "message": "fix: use /proc/1/cmdline for readiness probes and improve debug logging",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-20",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/83fe5e4f59e5e5afbe5be74b4530909820dbd225"
             }
@@ -650,7 +650,7 @@
                   "message": "feat: add Terraform AWS deployment for Gas Killer Router",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-12-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/76663d3c21fc43062a3a9860998595cce47ca8c3"
                 },
@@ -660,7 +660,7 @@
                   "message": "fix: remove invalid self reference in terraform outputs",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-12-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/33c1120b92a8720673601d4e1a2721658ec719e1"
                 },
@@ -670,7 +670,7 @@
                   "message": "feat: add E2E test job to terraform deployment",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-12-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/433773f4a8d88a753a92792d58b1c366e3727a83"
                 },
@@ -680,7 +680,7 @@
                   "message": "fix: escape shell variables in terraform heredoc",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-12-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/71c3fb482128dc0f4cb9143323cd60d8746395dc"
                 },
@@ -690,7 +690,7 @@
                   "message": "fix: add pre-destroy cleanup for ALB resources",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-12-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/40912f26f1a7d15f5296ba4488eac64a2cb3bdd4"
                 }
@@ -717,7 +717,7 @@
                       "message": "Fixes for terraform deploy and destroy in gas router",
                       "author": "Dijar Llozana",
                       "author_login": "dijarllozana",
-                      "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+                      "author_avatar_url": "./data/avatars/dijarllozana.png",
                       "date": "2026-01-07",
                       "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/f30f106ffd0806a83c39161e6af10c9b6689fdbe"
                     },
@@ -727,7 +727,7 @@
                       "message": "Fixed terraform destroy",
                       "author": "Dijar Llozana",
                       "author_login": "dijarllozana",
-                      "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+                      "author_avatar_url": "./data/avatars/dijarllozana.png",
                       "date": "2026-01-07",
                       "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/308a91d6d2324213aae46088bb23081289c656b1"
                     }
@@ -757,7 +757,7 @@
                   "message": "feat: add custom priority class so we don't rely on system cluster priority clas",
                   "author": "bagelface",
                   "author_login": "bagelface",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+                  "author_avatar_url": "./data/avatars/bagelface.png",
                   "date": "2025-12-24",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/462b617d53dc633e3a194ffe9bcb1b7307456409"
                 },
@@ -767,7 +767,7 @@
                   "message": "refactor: flatten helm directory",
                   "author": "bagelface",
                   "author_login": "bagelface",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+                  "author_avatar_url": "./data/avatars/bagelface.png",
                   "date": "2025-12-24",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/2dda1aed482bff3d93fc39871f814bc9ba83b4f8"
                 },
@@ -777,7 +777,7 @@
                   "message": "test: extend timeout so script runs locally",
                   "author": "bagelface",
                   "author_login": "bagelface",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+                  "author_avatar_url": "./data/avatars/bagelface.png",
                   "date": "2025-12-27",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/96cdb64591cbf5f1dc34c20ed499224e636350cb"
                 }
@@ -825,7 +825,7 @@
               "message": "docs: add ZK-provable EVM execution traces spec for AVS fraud proofs",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/3a9d20f0edcd48cd5dbea9b8a363c098874150b2"
             },
@@ -835,7 +835,7 @@
               "message": "refactor: align spec with Gas Killer slashing context",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/2329b1b3caaa1dda88e2838befc737d605add821"
             },
@@ -845,7 +845,7 @@
               "message": "refactor: align spec with Gas Killer slashing context",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/e8ecdce364c018060373d4168d3c6e900c5413e7"
             }
@@ -873,7 +873,7 @@
               "message": "feat: downgrade alloy and compatibility changes",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-16",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/87a4f8957c33e89e3dd205d817d38fefb2d54dfc"
             },
@@ -883,7 +883,7 @@
               "message": "build: improve CI so that gas-killer projects dont break by using this as a depe",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-16",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/c4ad253a4db8feb2cacdb53a85bb034bce1d6a20"
             },
@@ -893,7 +893,7 @@
               "message": "build: tests don't need to be run with versbose flag",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-16",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/d50fc489b2a5b031ff11ca00a8032f58aab242b1"
             },
@@ -903,7 +903,7 @@
               "message": "fix: use correct environment variable in tests",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-16",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/5e85308ed4d998587837bb1be928c781501c7217"
             },
@@ -913,7 +913,7 @@
               "message": "fix: remove double-encoding wrapper in state updates",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-03",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/14cc47b04a8a3c97a16b8e20b5b0f51ec56b0219"
             }
@@ -941,7 +941,7 @@
               "message": "chore: attempting merge",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-08-17",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/d41184dbfef2f7683dad480129664faa1bbfedff"
             },
@@ -951,7 +951,7 @@
               "message": "fix: add 0x20 to revert in GasEstimator",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-08-21",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/57345ac33955f1b474f8cdecda1583e23d9c155a"
             },
@@ -961,7 +961,7 @@
               "message": "refactor: do not check if tx failed in `get_tx_trace`",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-08-21",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/ae955f970325c407838a6b729b0e10b2cad4df67"
             },
@@ -971,7 +971,7 @@
               "message": "full block succeeded",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-08-21",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/22e3b264765855a460b61baba2469b84524fafe7"
             },
@@ -981,7 +981,7 @@
               "message": "purge",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-09-01",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/commit/43cf28c80a8e4740856f0a5ed0f69741325738b1"
             }
@@ -1027,7 +1027,7 @@
               "message": "Add modular cooperative treasury infrastructure specification",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-09",
               "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/678291182818e494c4d5f2fe22a322fca16b3d23"
             }
@@ -1055,7 +1055,7 @@
               "message": "chore: init",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-04-01",
               "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/89f9c2791a2676e096a564705b3ecd23513a1abb"
             },
@@ -1065,7 +1065,7 @@
               "message": "fix: moved to helios-spec",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-04-01",
               "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/8ebceb68e514322079f81f6653e3476392086467"
             },
@@ -1075,7 +1075,7 @@
               "message": "refactor: simplifying mvp",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-04-01",
               "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/13e86777fa4e3729c58da398eceb5abbcf64cf01"
             },
@@ -1085,7 +1085,7 @@
               "message": "docs: adding gk sol sdk",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-04-30",
               "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/c5dce061cff057e9184a30430de46d4ba8666d25"
             },
@@ -1095,7 +1095,7 @@
               "message": "docs: adding diagram",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-04-30",
               "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/29fffe529363894a7c1a0408943888d7d5cf9e38"
             }
@@ -1122,7 +1122,7 @@
                   "message": "docs: OptimisticSP1ContractCall.md",
                   "author": "rubydusa",
                   "author_login": "rubydusa",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+                  "author_avatar_url": "./data/avatars/rubydusa.png",
                   "date": "2026-01-12",
                   "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/8f5f5c2b4c19586f82e97ae452fbe8c87272ed57"
                 },
@@ -1132,7 +1132,7 @@
                   "message": "first claude comparision iteration",
                   "author": "rubydusa",
                   "author_login": "rubydusa",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+                  "author_avatar_url": "./data/avatars/rubydusa.png",
                   "date": "2026-01-12",
                   "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/60b5382c5a79c296e4fc3bbf6ab44cff1040ea61"
                 },
@@ -1142,7 +1142,7 @@
                   "message": "chore: fix typos",
                   "author": "rubydusa",
                   "author_login": "rubydusa",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+                  "author_avatar_url": "./data/avatars/rubydusa.png",
                   "date": "2026-01-12",
                   "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/48e2235e427bb819ad114dabfe83c36d0489f247"
                 },
@@ -1152,7 +1152,7 @@
                   "message": "refactor: store only hash of sp1 proof on-chain",
                   "author": "rubydusa",
                   "author_login": "rubydusa",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+                  "author_avatar_url": "./data/avatars/rubydusa.png",
                   "date": "2026-01-12",
                   "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/c9e4a41d3a7daa0e2c07df8a79c5af30da5e5b2d"
                 },
@@ -1162,7 +1162,7 @@
                   "message": "Add mermaid diagrams",
                   "author": "rubydusa",
                   "author_login": "rubydusa",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+                  "author_avatar_url": "./data/avatars/rubydusa.png",
                   "date": "2026-01-12",
                   "html_url": "https://github.com/BreadchainCoop/Diagrams/commit/6be708221045f81c3420cd701fa259048ddfe96f"
                 }
@@ -1210,7 +1210,7 @@
               "message": "feat: add diagnostic image with full error output",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2026-01-07",
               "html_url": "https://github.com/BreadchainCoop/eigenlayer-bls-local/commit/f3ddb2cd97afc08769373b84bf3edab45897dae7"
             },
@@ -1220,7 +1220,7 @@
               "message": "Merge branch 'dev' into RonTuretzky/diag-full-error",
               "author": "Dijar Llozana",
               "author_login": "dijarllozana",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+              "author_avatar_url": "./data/avatars/dijarllozana.png",
               "date": "2026-01-08",
               "html_url": "https://github.com/BreadchainCoop/eigenlayer-bls-local/commit/51a669674fab44c9a3f34d33a65fcde2fe5c8ffc"
             }
@@ -1266,7 +1266,7 @@
               "message": "refactor: migrate Counter app from commonware-restaking",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-avs-counter/commit/8b8849ed64529333458034fc073be732d6eaf0b5"
             },
@@ -1276,7 +1276,7 @@
               "message": "build: update the CI workflows to target correct directories",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-avs-counter/commit/c1103c43ad1569786e82f12d3aa712d20b5c03d9"
             },
@@ -1286,7 +1286,7 @@
               "message": "refactor: run forge fmt",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-avs-counter/commit/9810dfa49943160f2e218b52dff35d6aac2e4985"
             },
@@ -1296,7 +1296,7 @@
               "message": "refactor: improve directory structure",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-avs-counter/commit/abfe1ddc7e67992ebfca91a11cbf928aa7eb5a2c"
             },
@@ -1306,7 +1306,7 @@
               "message": "fix: fix issue with Counter contract docstring",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-avs-counter/commit/5c132844d26b894ad92d199c2481b7b0f434afcf"
             }
@@ -1334,7 +1334,7 @@
               "message": "Update README.md",
               "author": "The Blockchain Socialist",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-07-18",
               "html_url": "https://github.com/BreadchainCoop/commonware-avs-counter/commit/f53e13b0e329d7d4bd1dfef2ee1025148cb07bd5"
             }
@@ -1380,7 +1380,7 @@
               "message": "refactor: move eigenlayer network config to core",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/d41e384935b4eb2ac503d1e31a5dff7e0f3b2fce"
             },
@@ -1390,7 +1390,7 @@
               "message": "refactor: remove usecases, scripts, and config",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/7c8e8c1e603265f2688f1f47134a05a2b459c390"
             },
@@ -1400,7 +1400,7 @@
               "message": "refactor: remove Counter bindings, docker environment stuff, and integration tes",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-11-26",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/71ad64dfab01657b43e82288722a6583c1159c7f"
             },
@@ -1410,7 +1410,7 @@
               "message": "build: run local integration test workflow for main and dev",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2026-01-02",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/cd447c0213a17fcf5667534fd0eb5da2f1b52f82"
             },
@@ -1420,7 +1420,7 @@
               "message": "Merge branch 'dev' into remove-counter-example",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2026-01-05",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/4757d3ff20470a433314976f703b46a8f8354058"
             }
@@ -1448,7 +1448,7 @@
               "message": "build: run local integration test workflow for main and dev",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2026-01-02",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/cd447c0213a17fcf5667534fd0eb5da2f1b52f82"
             }
@@ -1476,7 +1476,7 @@
               "message": "Added elaborate helm chart support for all the components coverted from the dock",
               "author": "Dijar Llozana",
               "author_login": "dijarllozana",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+              "author_avatar_url": "./data/avatars/dijarllozana.png",
               "date": "2025-12-09",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/1e7dea6f2f3c951df89aa871f59623a7d5a5ba52"
             },
@@ -1486,7 +1486,7 @@
               "message": "Added EOF",
               "author": "Dijar Llozana",
               "author_login": "dijarllozana",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+              "author_avatar_url": "./data/avatars/dijarllozana.png",
               "date": "2025-12-09",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/ee3550a8ce85c8f3486c2479cc65765034886ee8"
             },
@@ -1496,7 +1496,7 @@
               "message": "Added helm chart github integration tests",
               "author": "Dijar Llozana",
               "author_login": "dijarllozana",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+              "author_avatar_url": "./data/avatars/dijarllozana.png",
               "date": "2025-12-10",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/576b5bc9646fce651494aebc7a368e1c521a1236"
             },
@@ -1506,7 +1506,7 @@
               "message": "Fixing secrets in helm install e2e tests",
               "author": "Dijar Llozana",
               "author_login": "dijarllozana",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+              "author_avatar_url": "./data/avatars/dijarllozana.png",
               "date": "2025-12-10",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/cb08164960724a0eab4b1cf1dd93f0799e8e9d93"
             },
@@ -1516,7 +1516,7 @@
               "message": "Fixed integration tests to always run fast aggregations and ingress tests",
               "author": "Dijar Llozana",
               "author_login": "dijarllozana",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/45999272?v=4",
+              "author_avatar_url": "./data/avatars/dijarllozana.png",
               "date": "2025-12-10",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/526a5f1a3b70db8fe7bf4bf11f440e97fa503f26"
             }
@@ -1544,7 +1544,7 @@
               "message": "feat: Add Kubernetes deployment support with preserved E2E test coverage",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-09",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/c3fbbd194538be56d25d4c3d40f5d5c3e5819dbd"
             },
@@ -1554,7 +1554,7 @@
               "message": "fix: Address review feedback for K8s refactor",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-09",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/dfe94390eabb953ad985a9910d2c361d86d9ee11"
             }
@@ -1581,7 +1581,7 @@
                   "message": "fix: update bitnami/kubectl image tag to 'latest'",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-12-09",
                   "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/469709b624e5ea811cbbc4f57b345a842c44512b"
                 }
@@ -1611,7 +1611,7 @@
               "message": "Make quorum number configurable via QUORUM_NUMBER env var",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/baefbc268f39606c0f14809978209a3e04e7fc67"
             }
@@ -1639,7 +1639,7 @@
               "message": "feat: add Helm charts for Kubernetes deployment",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-09-29",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/80edd3e6b1caa6a89d8b22ef81fb3add135954dd"
             }
@@ -1667,7 +1667,7 @@
               "message": "Initial plan",
               "author": "copilot-swe-agent[bot]",
               "author_login": "Copilot",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+              "author_avatar_url": "./data/avatars/Copilot.png",
               "date": "2025-09-29",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/297603259fa28561aaa626cdffa620843bb4dcff"
             },
@@ -1677,7 +1677,7 @@
               "message": "Implement core Helm chart templates and examples",
               "author": "copilot-swe-agent[bot]",
               "author_login": "Copilot",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+              "author_avatar_url": "./data/avatars/Copilot.png",
               "date": "2025-09-29",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/d1919e5c02f6b8c990c70253d9bc13e385f27766"
             },
@@ -1687,7 +1687,7 @@
               "message": "Complete Helm chart implementation with documentation and examples",
               "author": "copilot-swe-agent[bot]",
               "author_login": "Copilot",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+              "author_avatar_url": "./data/avatars/Copilot.png",
               "date": "2025-09-29",
               "html_url": "https://github.com/BreadchainCoop/commonware-restaking/commit/22b07b3cbd99596b780840c86206e00976b52a12"
             }
@@ -1733,7 +1733,7 @@
               "message": "Add comprehensive user profile page",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2026-01-02",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/f0864e48ebd4fa82a4938d8b96a6f4a0e6ff9302"
             },
@@ -1743,7 +1743,7 @@
               "message": "Fix null checks for breadBalance in profile components",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2026-01-02",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/60414d69a87d1c9c8ad193c66fe5aa7f15203eb2"
             },
@@ -1753,7 +1753,7 @@
               "message": "Shorten profile button text to fit on one line",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2026-01-02",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/f35e8ed9ad6299dbf6841dfb591786f15ff3c880"
             },
@@ -1763,7 +1763,7 @@
               "message": "Add user-specific voting history to profile page",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2026-01-02",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/c55be5bde2226f57e04965a43f6613d318879f15"
             },
@@ -1773,7 +1773,7 @@
               "message": "Fix ESLint error: escape apostrophe in UserVotingHistory",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2026-01-02",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/fa05863304c1c26774bcdf9c6f0ce3a59abf5406"
             }
@@ -1801,7 +1801,7 @@
               "message": "Integrate ZKP2P redirect onramp",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-30",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/ce8bdb89489829e83a919452ddc1d54e79760f49"
             },
@@ -1811,7 +1811,7 @@
               "message": "Pass recipient address to ZKP2P deep link",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/47f1501e2f9d6d19c015860a226a0397d7426ec8"
             },
@@ -1821,7 +1821,7 @@
               "message": "Add mobile detection to disable ZKP2P feature on mobile devices",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/424a0c011518dad320e1b570189e9ccbcf737518"
             },
@@ -1831,7 +1831,7 @@
               "message": "Fix LiftedButton className usage for Netlify compatibility",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/0f30efff8911ea26e6fd8b95209229c592395264"
             },
@@ -1841,7 +1841,7 @@
               "message": "Hide amount input and disable button interaction on mobile",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/f209c7e57a526bae100cce4e990a60afd0352b35"
             }
@@ -1869,7 +1869,7 @@
               "message": "Integrate ZKP2P redirect onramp",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-30",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/ce8bdb89489829e83a919452ddc1d54e79760f49"
             },
@@ -1879,7 +1879,7 @@
               "message": "Pass recipient address to ZKP2P deep link",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/47f1501e2f9d6d19c015860a226a0397d7426ec8"
             },
@@ -1889,7 +1889,7 @@
               "message": "Add mobile detection to disable ZKP2P feature on mobile devices",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/424a0c011518dad320e1b570189e9ccbcf737518"
             },
@@ -1899,7 +1899,7 @@
               "message": "Fix LiftedButton className usage for Netlify compatibility",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/0f30efff8911ea26e6fd8b95209229c592395264"
             },
@@ -1909,7 +1909,7 @@
               "message": "Hide amount input and disable button interaction on mobile",
               "author": "tbsoc",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-12-31",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/f209c7e57a526bae100cce4e990a60afd0352b35"
             }
@@ -1937,7 +1937,7 @@
               "message": "Get votes from subgraph",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-10-09",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/e157e05506e19a26a570f24548f41646a031e613"
             }
@@ -1965,7 +1965,7 @@
               "message": "Improve countdown display with hours & minutes",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-08-04",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/3ceebdc8fa82853bfba449530d3f0cac6ed15c4c"
             }
@@ -1993,7 +1993,7 @@
               "message": "trying to upgrade versions",
               "author": "Sara",
               "author_login": null,
-              "author_avatar_url": null,
+              "author_avatar_url": "",
               "date": "2025-05-28",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/edfd87c7f769f53bf8d1e06c4c3998a0e3a53ff3"
             },
@@ -2003,7 +2003,7 @@
               "message": "basic widget working",
               "author": "Sara",
               "author_login": null,
-              "author_avatar_url": null,
+              "author_avatar_url": "",
               "date": "2025-05-28",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/78730ecab8b927e3a78633f4f9e09db3c3ca959a"
             },
@@ -2013,7 +2013,7 @@
               "message": "f",
               "author": "Sara",
               "author_login": null,
-              "author_avatar_url": null,
+              "author_avatar_url": "",
               "date": "2025-05-28",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/d76e159f77e5768aa21242ff4700fd6e3674f434"
             },
@@ -2023,7 +2023,7 @@
               "message": "initialize to gnosis chain xdai",
               "author": "Sara",
               "author_login": "sarace",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
+              "author_avatar_url": "./data/avatars/sarace.png",
               "date": "2025-06-24",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/83e72514f372ad37a9f73c65528feea3ee1e0787"
             },
@@ -2033,7 +2033,7 @@
               "message": "bump versions for build error",
               "author": "Sara",
               "author_login": "sarace",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
+              "author_avatar_url": "./data/avatars/sarace.png",
               "date": "2025-06-24",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/d1dd2cebb0f826de64102525d16c900a7f9c49fd"
             }
@@ -2061,7 +2061,7 @@
               "message": "Voting Power Boosters feature",
               "author": "Sara",
               "author_login": "sarace",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
+              "author_avatar_url": "./data/avatars/sarace.png",
               "date": "2025-02-06",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/3470e00453d56f76e0c59955e1d051cb6348e82b"
             },
@@ -2071,7 +2071,7 @@
               "message": "Booster page: Booster card and booster popup card",
               "author": "Olivier",
               "author_login": "thisolivier",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/3058656?v=4",
+              "author_avatar_url": "./data/avatars/thisolivier.png",
               "date": "2025-02-10",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/7281b81df9f3f90cc53e521187d357ed1c299682"
             },
@@ -2081,7 +2081,7 @@
               "message": "fixes",
               "author": "Sara",
               "author_login": "sarace",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
+              "author_avatar_url": "./data/avatars/sarace.png",
               "date": "2025-06-24",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/33715ee34e3b3a87ea5830043a89c5a2ef2acaab"
             },
@@ -2091,7 +2091,7 @@
               "message": "Update contracts",
               "author": "Sara",
               "author_login": "sarace",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
+              "author_avatar_url": "./data/avatars/sarace.png",
               "date": "2025-06-26",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/13702ac2387bedff9f8c9d2190e394f28226c14e"
             },
@@ -2101,7 +2101,7 @@
               "message": "get voting multiplier from yd",
               "author": "Sara",
               "author_login": "sarace",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
+              "author_avatar_url": "./data/avatars/sarace.png",
               "date": "2025-06-26",
               "html_url": "https://github.com/BreadchainCoop/crowdstaking-v2/commit/bcf19a98cb09580c2ad53c3518a05b7f722561a6"
             }
@@ -2165,7 +2165,7 @@
               "message": "feat: add all-in-one foundry-cicd reusable workflow",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/c8aa306894ad43d1eab73984b85dd546f309504d"
             },
@@ -2175,7 +2175,7 @@
               "message": "fix: verification step passes RPC_URL and fails properly",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/be6eb8ba4d7ca5c3837da5f432708867a96efbfa"
             },
@@ -2185,7 +2185,7 @@
               "message": "fix: use fully qualified contract names for verification",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/a02d53b3cd2179cd5a3b019bba8376838c106e69"
             },
@@ -2195,7 +2195,7 @@
               "message": "fix: use upgrades-path for fallback to fix path resolution",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/7edff3542ddf395eaab8135104d56e63318722ff"
             },
@@ -2205,7 +2205,7 @@
               "message": "refactor: run upgrade validation via OZ CLI instead of script",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/89122db37219be5ff24f96db3484031ee6106212"
             }
@@ -2232,7 +2232,7 @@
                   "message": "refactor: replace submodule with local testing framework",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-12-27",
                   "html_url": "https://github.com/BreadchainCoop/etherform/commit/87e5c78d1cb2f207c0e589d0c80c305bcb69d5b8"
                 }
@@ -2262,7 +2262,7 @@
               "message": "feat: add deployment-foundry-profile input to workflows",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-12-04",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/3c3048e7fc3f988abb7dfc9e9bba8933874013e2"
             },
@@ -2272,7 +2272,7 @@
               "message": "docs: add deployment-foundry-profile documentation",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-12-04",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/58ddecdeca58e81eae1e18b3bd67dd6fa69e57c6"
             },
@@ -2282,7 +2282,7 @@
               "message": "feat: make blockscout verification optional",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-12-04",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/77f745e35ab0b03b5fe28d796eee0c038f985973"
             },
@@ -2292,7 +2292,7 @@
               "message": "fix: fail verification step when all retries exhausted",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-12-04",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/9d2381f8705656677e90ac6c8ab851711331e357"
             },
@@ -2302,7 +2302,7 @@
               "message": "fix: pass RPC_URL to verification for --guess-constructor-args",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-12-04",
               "html_url": "https://github.com/BreadchainCoop/etherform/commit/7b38f11d9441b5110ef8ed5361e8277c63d9f774"
             }
@@ -2348,7 +2348,7 @@
               "message": "fix: SetupMiddleware  as param",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-11-16",
               "html_url": "https://github.com/BreadchainCoop/bls-middleware/commit/f5320779f453659153843c993e3cb959297aeba5"
             }
@@ -2376,7 +2376,7 @@
               "message": "fix: use config file for register operator script",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-25",
               "html_url": "https://github.com/BreadchainCoop/bls-middleware/commit/59c9569645f64c920cba411f0640a6ddbe772c17"
             },
@@ -2386,7 +2386,7 @@
               "message": "refactor: remove unused local variable",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-25",
               "html_url": "https://github.com/BreadchainCoop/bls-middleware/commit/671877e1465538fa90fa978a63a24b723ddd347d"
             },
@@ -2396,7 +2396,7 @@
               "message": "fix: replace hardcoded addresses with config references",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-25",
               "html_url": "https://github.com/BreadchainCoop/bls-middleware/commit/8474dce96f937004c0f9bed9f07f9000051ef8bf"
             },
@@ -2406,7 +2406,7 @@
               "message": "fix: add optional lstStrategy and lstToken values to deployment JSON",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-25",
               "html_url": "https://github.com/BreadchainCoop/bls-middleware/commit/cd2c350d6f473f3bf3fd0da9eefc14ff306e92a5"
             },
@@ -2416,7 +2416,7 @@
               "message": "fix: revert changes to script",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-09-25",
               "html_url": "https://github.com/BreadchainCoop/bls-middleware/commit/33d3c1b38f4ce3c21ab33ff973d1c7d375cb0537"
             }
@@ -2462,7 +2462,7 @@
               "message": "revert: clean slate for CI/CD testing",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-21",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/cb117c127960963fab3f63159f7e79a05792a37a"
             },
@@ -2472,7 +2472,7 @@
               "message": "ci: bypass orchestrator to test implement-cicd-spec workflows",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-22",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/676dd2ceb74af7f0f15c970bfcba34b6eabd6481"
             },
@@ -2482,7 +2482,7 @@
               "message": "ci: bypass orchestrator to test implement-cicd-spec workflows",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-22",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/a62ded1047ea8f0062603b3a9c8c0c4ad09ca7f6"
             },
@@ -2492,7 +2492,7 @@
               "message": "ci: temporary PR baseline init for upgrade-safety testing",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-22",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/f8aff2b23c327da4d655510c412626fb52d4f1a1"
             },
@@ -2502,7 +2502,7 @@
               "message": "test: add baseline snapshots to exercise upgrade-safety",
               "author": "Francisco Rolotti",
               "author_login": "franrolotti",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/102830313?v=4",
+              "author_avatar_url": "./data/avatars/franrolotti.png",
               "date": "2025-12-22",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/d08378871826a040c66fe3da82e7a0ab84c4c8fa"
             }
@@ -2530,7 +2530,7 @@
               "message": "test: add remove parent contract violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/7dfdac451381b218793043fdfdf5679cda83166d"
             }
@@ -2558,7 +2558,7 @@
               "message": "test: add missing oz-upgrades annotation violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/21ee3fa48998e6b7509e264799ce340494954063"
             }
@@ -2586,7 +2586,7 @@
               "message": "test: add UUPS missing authorization violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/edf559379460bd499a78db056e15b19bcf1e4718"
             }
@@ -2614,7 +2614,7 @@
               "message": "test: add function signature change violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/820f1fc57c155d8e8baee440b678f2348c70f64b"
             }
@@ -2642,7 +2642,7 @@
               "message": "test: add enum value reorder violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/e24978ef128da5f49c097cfd0b40c9bb5900b806"
             }
@@ -2670,7 +2670,7 @@
               "message": "test: add struct field reorder violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/69b15152d2afaf662b8b24cf0589972c65cc0ace"
             }
@@ -2698,7 +2698,7 @@
               "message": "test: add unsafe delegatecall violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/26fb02d8ed681d408bda590dfc75d7026145be79"
             }
@@ -2726,7 +2726,7 @@
               "message": "test: add selfdestruct violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/6ee9528367ced333010441401ca5a53bb73e162c"
             }
@@ -2754,7 +2754,7 @@
               "message": "test: add immutable variable violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/b89bbf8a63552d957795a9a1e0e5ed7c4f10679e"
             }
@@ -2782,7 +2782,7 @@
               "message": "test: add constructor with storage logic violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/525f3490895d6c1b47da5c239f604b584c901e1d"
             }
@@ -2810,7 +2810,7 @@
               "message": "test: add inline state variable initialization violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/e6a8a8b7584514c7b647cda80eb448e7431bf9d3"
             }
@@ -2838,7 +2838,7 @@
               "message": "test: add missing _disableInitializers violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/ed71520118967ed1b6f25d92a39c633fc943325d"
             }
@@ -2866,7 +2866,7 @@
               "message": "test: add missing parent initializer call violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/51bfcf06c1e3796f8f5f60b8fdea22a4e84df4e3"
             }
@@ -2894,7 +2894,7 @@
               "message": "test: add unprotected initializer violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/5cb9b31639710affbdf0a733f194821766332874"
             }
@@ -2922,7 +2922,7 @@
               "message": "test: add missing initializer violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/4791c5ddbee4269d9c0f6562c591592da0387079"
             }
@@ -2950,7 +2950,7 @@
               "message": "test: add storage gap misuse violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/e475457896cfb923d5e82d75de2bdad222893a90"
             }
@@ -2978,7 +2978,7 @@
               "message": "test: add inheritance order change violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/90a52ba4dab25772b60f4bb8b5cf6f2cf667372f"
             }
@@ -3006,7 +3006,7 @@
               "message": "test: add remove state variable violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/d1ba5ab2ba6b9187b85ba22a1e0d9be69b6d288f"
             }
@@ -3034,7 +3034,7 @@
               "message": "test: add insert variable before violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/f95fcfef019957392aa19d3426be749d823ccfe0"
             }
@@ -3062,7 +3062,7 @@
               "message": "test: add change variable type violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/90df8fbe5e0b14c559f15a7ad0fb6adae59244b3"
             }
@@ -3090,7 +3090,7 @@
               "message": "test: add reorder state variables violation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/85123bcf5635ba919e171c8792483ed008656ca8"
             }
@@ -3118,7 +3118,7 @@
               "message": "feat: add lastUpdated timestamp to Counter storage",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/f02d2f7518aa2ce243c379d7599c74f8c2bae4eb"
             }
@@ -3146,7 +3146,7 @@
               "message": "feat: add owner field to Counter storage struct",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/492ff135eb4c8ba7b0acea7c34b3e4dd9942d465"
             },
@@ -3156,7 +3156,7 @@
               "message": "chore: trigger CI",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/a980f919c9525cb7afb88ef4a2a9ae00213ed308"
             },
@@ -3166,7 +3166,7 @@
               "message": "chore: trigger CI",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/d586ed526fe1452ae3cb99165660f147c463c555"
             },
@@ -3176,7 +3176,7 @@
               "message": "refactor: move unsafe storage change to CounterBasic",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/6bd49aa1c8d6a7b90852689d0d113a50ea4c3bae"
             }
@@ -3204,7 +3204,7 @@
               "message": "test: introduce unsafe storage layout change",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/fe4992e0ab9c34aed0c6218f103e753285c3f199"
             },
@@ -3214,7 +3214,7 @@
               "message": "feat: add CI/CD workflow with etherform",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/44583cbaaa9d5dfc6efc92e53668c04b42c65b12"
             },
@@ -3224,7 +3224,7 @@
               "message": "chore: remove ValidateUpgrade.s.sol (now handled by etherform workflow)",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/009e863b6898f310b8cbac7fd93882ad2f9a386f"
             },
@@ -3234,7 +3234,7 @@
               "message": "Merge add-cicd branch to test upgrade safety validation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/9e547b3639226c125d4e7286159dc8c569786139"
             },
@@ -3244,7 +3244,7 @@
               "message": "Merge main into test-upgrade-safety-detection",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/foundry-upgradeable-counter-example/commit/ab34afb56d50c67eb0a10174cc3f0f17b4084a71"
             }
@@ -3290,7 +3290,7 @@
               "message": "Add Graph Node Dev Mode (GND) integration testing to CI/CD",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-12-08",
               "html_url": "https://github.com/BreadchainCoop/subgraphform/commit/7606a184133d5ff9abef1b442156f1c6635df1c7"
             }
@@ -3336,7 +3336,7 @@
               "message": "Add stacks page",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-12-05",
               "html_url": "https://github.com/BreadchainCoop/breadcoop-landing/commit/cec8453c53f1ee2ca6342071aa5fa52041a45a08"
             },
@@ -3346,7 +3346,7 @@
               "message": "Refactor footer and and transparent mode",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-12-05",
               "html_url": "https://github.com/BreadchainCoop/breadcoop-landing/commit/a6a5571932260753d01701d7db2389230bb175e0"
             },
@@ -3356,7 +3356,7 @@
               "message": "Prevent layout shift when testing deposit",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-12-05",
               "html_url": "https://github.com/BreadchainCoop/breadcoop-landing/commit/366552a8b2dbb19b6cfb38e283806342a2c74eea"
             },
@@ -3366,7 +3366,7 @@
               "message": "Make period stacks fixed to members",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-12-07",
               "html_url": "https://github.com/BreadchainCoop/breadcoop-landing/commit/60ca78ee068e94fa259521b90d649925f221c718"
             },
@@ -3376,7 +3376,7 @@
               "message": "Update next.js to fix security",
               "author": "Olaleye Blessing",
               "author_login": "Olaleye-Blessing",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/70102539?v=4",
+              "author_avatar_url": "./data/avatars/Olaleye-Blessing.png",
               "date": "2025-12-07",
               "html_url": "https://github.com/BreadchainCoop/breadcoop-landing/commit/72bd902a247d2c967643564ebadd016a866d4ef9"
             }
@@ -3422,7 +3422,7 @@
               "message": "fix: include current cycle in getCurrentVotingPower",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/breadchain/commit/6efd17fadbca941d00633d5f5f56b66da02db1d2"
             }
@@ -3450,7 +3450,7 @@
               "message": "feat: remove minimum voting power requirement",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/breadchain/commit/9a490906fe675fa06fd16689cb98e5085bddc00f"
             }
@@ -3478,7 +3478,7 @@
               "message": "Add GitHub Actions workflow for automatic testnet deployment",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-07-22",
               "html_url": "https://github.com/BreadchainCoop/breadchain/commit/8d88aace1f68e8552a66fe58b9dc452cf4feffc7"
             },
@@ -3488,7 +3488,7 @@
               "message": "Add staging branch trigger to testnet deployment workflow",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-07-22",
               "html_url": "https://github.com/BreadchainCoop/breadchain/commit/da1e2954166c86a817fa3034670d99f8812ffe98"
             },
@@ -3498,7 +3498,7 @@
               "message": "Add comprehensive testnet deployment documentation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-07-22",
               "html_url": "https://github.com/BreadchainCoop/breadchain/commit/dabe818ed1450e9c762af7ae358801e9645d6cf6"
             },
@@ -3508,7 +3508,7 @@
               "message": "Add deployment tracking, verification, and artifact generation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-07-22",
               "html_url": "https://github.com/BreadchainCoop/breadchain/commit/cfee5d8886590311335da0444bcdeed518b54af0"
             },
@@ -3518,7 +3518,7 @@
               "message": "Update documentation with verification and artifact details",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-07-22",
               "html_url": "https://github.com/BreadchainCoop/breadchain/commit/41f20d519b705573ec7a880b68e4bc2a35071d1d"
             }
@@ -3581,7 +3581,7 @@
               "message": "feat: Refactor to use revm-inspectors 0.32 and add opcode-tracer crate",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/22e8d6b24ae9397992c248d46e8a9b623c3f6be6"
             },
@@ -3591,7 +3591,7 @@
               "message": "chore: restore original plonk-fixture.json",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/a2165127b9ad68dda6ac0c64d27870eaee8cb2c6"
             },
@@ -3601,7 +3601,7 @@
               "message": "feat: add stack, memory, and storage_change to OpcodeExecution",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/fe04206381db3c57b9876f6f2ad057444dc6c39e"
             },
@@ -3611,7 +3611,7 @@
               "message": "fix: improve error handling in trace CLI and add doc comments",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/1623114b031acad1f4b280f8408cfbf8e4cc17b6"
             },
@@ -3621,7 +3621,7 @@
               "message": "feat: add opcode hash commitment to contract execution proofs",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/b788c397547e200ac06dea2df2e2e012e51811e2"
             }
@@ -3649,7 +3649,7 @@
               "message": "feat: Refactor to use revm-inspectors 0.32 and add opcode-tracer crate",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/22e8d6b24ae9397992c248d46e8a9b623c3f6be6"
             },
@@ -3659,7 +3659,7 @@
               "message": "chore: restore original plonk-fixture.json",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/a2165127b9ad68dda6ac0c64d27870eaee8cb2c6"
             },
@@ -3669,7 +3669,7 @@
               "message": "feat: add stack, memory, and storage_change to OpcodeExecution",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-28",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/fe04206381db3c57b9876f6f2ad057444dc6c39e"
             },
@@ -3679,7 +3679,7 @@
               "message": "fix: improve error handling in trace CLI and add doc comments",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/1623114b031acad1f4b280f8408cfbf8e4cc17b6"
             },
@@ -3689,7 +3689,7 @@
               "message": "feat: add depth field to OpcodeExecution (#5)",
               "author": "RonTuretzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/sp1-contract-call/commit/9b045a19002f7f06ddb5adbaee16cb7854ed8cbc"
             }
@@ -3735,7 +3735,7 @@
               "message": "docs(spec): update CI/CD spec with multi-mainnet, approval-gated deploy, and mai",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/etherform-tbd/commit/749737bb37d4695e1e3785af7e05a6dcaca2c79d"
             },
@@ -3745,7 +3745,7 @@
               "message": "fix(spec): simplify UML diagrams to match original styling",
               "author": "hudsonhrh",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/etherform-tbd/commit/daf49ef094ec8aec5b1e709ad40923805890514c"
             },
@@ -3755,7 +3755,7 @@
               "message": "Reset to foundry init with spec doc",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/etherform-tbd/commit/b8f1bf5317bc2f7b071681dc31bf6e88707ec6a5"
             },
@@ -3765,7 +3765,7 @@
               "message": "Merge reset-to-foundry-init into dev-to-main-ci-spec",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/etherform-tbd/commit/074cdeee9f79be6fd9b555ac4ec6767a8a2faef1"
             },
@@ -3775,7 +3775,7 @@
               "message": "Reset to foundry init, add reference workflow diagrams to spec",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-30",
               "html_url": "https://github.com/BreadchainCoop/etherform-tbd/commit/558e9476f0d01143ffa0c83f61c4ba1c41be9ddf"
             }
@@ -3821,7 +3821,7 @@
               "message": "feat: add slashing support to verifyAndUpdate signature",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-solidity-sdk/commit/04e9f96788ae73d91a7c35b32b2383a65be0d9c0"
             },
@@ -3831,7 +3831,7 @@
               "message": "chore(flat): auto-flatten solidity sources \ud83e\udd16",
               "author": "RonTuretzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-29",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-solidity-sdk/commit/11d689fd33e38a581b277002920787a181f248a3"
             }
@@ -3858,7 +3858,7 @@
                   "message": "feat: add expected external storage slots verification to verifyAndUpdate",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-11-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-solidity-sdk/commit/0c5329b32ff2e108dec5803f4ec9db30f9c9b811"
                 },
@@ -3868,7 +3868,7 @@
                   "message": "feat: verify external storage slot values via SLOAD at runtime",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-11-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-solidity-sdk/commit/5e78bee3bbb669bde2a1e36422c03357e1a81a8a"
                 },
@@ -3878,7 +3878,7 @@
                   "message": "refactor: simplify external storage verification",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-11-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-solidity-sdk/commit/5b058f909051b3b91e9e4ce38d7b58558a9e5b5a"
                 },
@@ -3888,7 +3888,7 @@
                   "message": "refactor: replace ExternalStorageSlot with ExternalCall for first-level call ver",
                   "author": "Ron Turetzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-11-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-solidity-sdk/commit/881cc7cb6c9d05c8146021f72ffa58d2303a9937"
                 },
@@ -3898,7 +3898,7 @@
                   "message": "chore(flat): auto-flatten solidity sources \ud83e\udd16",
                   "author": "RonTuretzky",
                   "author_login": "RonTuretzky",
-                  "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+                  "author_avatar_url": "./data/avatars/RonTuretzky.png",
                   "date": "2025-11-29",
                   "html_url": "https://github.com/BreadchainCoop/gas-killer-solidity-sdk/commit/d744c11010c2454f4bc7bb12a3e54e736fe4f5dd"
                 }
@@ -3963,7 +3963,7 @@
               "message": "Add conductor.json",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-09-22",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/2d54ac0ea8a96ca30c7a264b5e4e230bcf5cffd3"
             }
@@ -3991,7 +3991,7 @@
               "message": "Initial commit with Distribution Strategy Module",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/193905ed3b4b8c321675c52b8406f9ce0bc541f2"
             },
@@ -4001,7 +4001,7 @@
               "message": "feat: Implement Distribution Strategy Module for issue #9",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/3756e7208d30de8c44d72b488fc9f49ce787115f"
             },
@@ -4011,7 +4011,7 @@
               "message": "Merge remote-tracking branch 'origin/main' into RonTuretzky/palenque",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/ae48b73e35c21b27e1e5c34e0bde58d61887625e"
             },
@@ -4021,7 +4021,7 @@
               "message": "fix: Restore submodules and remappings to original state",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/b7bc414702cb0f84dfc497071758ad3f31f9dfd5"
             },
@@ -4031,7 +4031,7 @@
               "message": "chore: fmt",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/2525cad619bb1d041c791edb02644525d0ad1dc9"
             }
@@ -4059,7 +4059,7 @@
               "message": "chore: init\"",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/a92265439217247d1ba14ff13d9cfd0d2ce5c347"
             },
@@ -4069,7 +4069,7 @@
               "message": "feat: implement voting module with signature-based voting and multiple strategie",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/a174db6aea01daa3c4b7f5bbd864a80a869933f6"
             },
@@ -4079,7 +4079,7 @@
               "message": "docs: add comprehensive signature generation documentation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/b3204c85d0a19d02c4353d05494c893a39b486e8"
             },
@@ -4089,7 +4089,7 @@
               "message": "feat: integrate recipient registry with voting module for validation",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/e6525c463b328d2779c7768310cb0f152b870497"
             },
@@ -4099,7 +4099,7 @@
               "message": "Merge pull request #26 from BreadchainCoop/main",
               "author": "RonTuretzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-16",
               "html_url": "https://github.com/BreadchainCoop/crowdstake.fun/commit/a2882a2fb547b11ea9217a0829ba30b4bd561d9a"
             }
@@ -4145,7 +4145,7 @@
               "message": "Update eigenlayer-middleware to fd26169",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-10-30",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-array-summation/commit/26d7f75044161614d1b6b3f2657a8846dbbb93eb"
             },
@@ -4155,7 +4155,7 @@
               "message": "Fix forge fmt formatting issues",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-10-30",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-array-summation/commit/09b46d949f76b4cf573ff7187a9889311adec136"
             },
@@ -4165,7 +4165,7 @@
               "message": "Fix forge fmt with version 1.4.3 formatting",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-03",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-array-summation/commit/0ffc22e56700d4b04fd4047215f70b2e93299bb6"
             },
@@ -4175,7 +4175,7 @@
               "message": "Fix NatSpec documentation placement in Counter.sol",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-03",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-array-summation/commit/e0f33c9ea953032608de4da09a6e7f1d032998b6"
             },
@@ -4185,7 +4185,7 @@
               "message": "Remove duplicate eigenlayer-middleware dependency",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-11-03",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-array-summation/commit/b9e6651e859a63f0137370b8497ebc61f56c1d6c"
             }
@@ -4213,7 +4213,7 @@
               "message": "Update README.md",
               "author": "The Blockchain Socialist",
               "author_login": "tbsoc",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/80857213?v=4",
+              "author_avatar_url": "./data/avatars/tbsoc.png",
               "date": "2025-07-18",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-array-summation/commit/f53e13b0e329d7d4bd1dfef2ee1025148cb07bd5"
             },
@@ -4223,7 +4223,7 @@
               "message": "Merge branch 'dev' into tbsoc-add-readme",
               "author": "bagelface",
               "author_login": "bagelface",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "author_avatar_url": "./data/avatars/bagelface.png",
               "date": "2025-08-29",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-array-summation/commit/6beeabb3f0a8d77d87fbbc6990cae89f8fc02e6e"
             }
@@ -4269,7 +4269,7 @@
               "message": "feat: fp lib",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-07-22",
               "html_url": "https://github.com/BreadchainCoop/bls12381-sol/commit/4c2a09763b6df05c04b5f85dce59725ba5083962"
             },
@@ -4279,7 +4279,7 @@
               "message": "fix: inverse fp2",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-07-22",
               "html_url": "https://github.com/BreadchainCoop/bls12381-sol/commit/918981a7617dffc37a8057512696fdd58aef0919"
             },
@@ -4289,7 +4289,7 @@
               "message": "fix: copilot suggestions",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-08-29",
               "html_url": "https://github.com/BreadchainCoop/bls12381-sol/commit/a5eac51ab30404fa58003ef6a0a571bfb0040617"
             },
@@ -4299,7 +4299,7 @@
               "message": "chore: forge fmt",
               "author": "rubydusa",
               "author_login": "rubydusa",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/97784987?v=4",
+              "author_avatar_url": "./data/avatars/rubydusa.png",
               "date": "2025-08-29",
               "html_url": "https://github.com/BreadchainCoop/bls12381-sol/commit/1eeaf8640a4ca8933c6527067d9083da5ed017da"
             }
@@ -4345,7 +4345,7 @@
               "message": "Initial plan",
               "author": "copilot-swe-agent[bot]",
               "author_login": "Copilot",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+              "author_avatar_url": "./data/avatars/Copilot.png",
               "date": "2025-08-19",
               "html_url": "https://github.com/BreadchainCoop/farcaster-donate-to-gaza/commit/2a43247ccb7759d44b544c1f927b6f0b2449065d"
             },
@@ -4355,7 +4355,7 @@
               "message": "Implement sharable donation frame popup with Farcaster integration",
               "author": "copilot-swe-agent[bot]",
               "author_login": "Copilot",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+              "author_avatar_url": "./data/avatars/Copilot.png",
               "date": "2025-08-19",
               "html_url": "https://github.com/BreadchainCoop/farcaster-donate-to-gaza/commit/00c3dc594bf42235c5f9f8060baa67c6d918bc21"
             },
@@ -4365,7 +4365,7 @@
               "message": "Clean up test button and finalize share popup feature for production",
               "author": "copilot-swe-agent[bot]",
               "author_login": "Copilot",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+              "author_avatar_url": "./data/avatars/Copilot.png",
               "date": "2025-08-19",
               "html_url": "https://github.com/BreadchainCoop/farcaster-donate-to-gaza/commit/1953b62b828f5f05df19947e909015532b9c946f"
             }
@@ -4393,7 +4393,7 @@
               "message": "feat: Add shareable frame popup post-donation with Farcaster integration",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-12",
               "html_url": "https://github.com/BreadchainCoop/farcaster-donate-to-gaza/commit/3aa9a7807c54960bf2b01b565925a1a1aae44586"
             }
@@ -4439,7 +4439,7 @@
               "message": "Use binaries in simple workflow",
               "author": "deepsp94",
               "author_login": "deepsp94",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/31017687?v=4",
+              "author_avatar_url": "./data/avatars/deepsp94.png",
               "date": "2025-08-17",
               "html_url": "https://github.com/BreadchainCoop/sui-walrus-deployment/commit/481150109d83b51fb7a1b916c27e522d7eaeece4"
             },
@@ -4449,7 +4449,7 @@
               "message": "Run workflow always",
               "author": "deepsp94",
               "author_login": "deepsp94",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/31017687?v=4",
+              "author_avatar_url": "./data/avatars/deepsp94.png",
               "date": "2025-08-17",
               "html_url": "https://github.com/BreadchainCoop/sui-walrus-deployment/commit/79eb9cbf208cfb15ae91289739f9d98d091d9575"
             }
@@ -4495,7 +4495,7 @@
               "message": "chore: diff",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-17",
               "html_url": "https://github.com/BreadchainCoop/breadkit-app/commit/190febb17aa7c1906dd84194a3a14c2b7568b123"
             },
@@ -4505,7 +4505,7 @@
               "message": "chore: detracking node modules",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-17",
               "html_url": "https://github.com/BreadchainCoop/breadkit-app/commit/7b98f12357588e8d6440ff3e460fc313d7f34e70"
             },
@@ -4515,7 +4515,7 @@
               "message": "chore: deleting dist\"",
               "author": "Ron Turetzky",
               "author_login": "RonTuretzky",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/74178515?v=4",
+              "author_avatar_url": "./data/avatars/RonTuretzky.png",
               "date": "2025-08-17",
               "html_url": "https://github.com/BreadchainCoop/breadkit-app/commit/2f5a7acfd9c752181718133af1d41c8b2c5ac0fb"
             }
@@ -4561,7 +4561,7 @@
               "message": "Update spec.md",
               "author": "Hudson Headley",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-05-05",
               "html_url": "https://github.com/BreadchainCoop/bread-kit/commit/3ec7c729f693e5546b9106959f65ff9e4d2dc583"
             },
@@ -4571,7 +4571,7 @@
               "message": "Update spec.md",
               "author": "Hudson Headley",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-05-06",
               "html_url": "https://github.com/BreadchainCoop/bread-kit/commit/db3cde422fba430d7232e164732b169f913c0e9c"
             },
@@ -4581,7 +4581,7 @@
               "message": "Rons cross chain language suggestion",
               "author": "Hudson Headley",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-05-06",
               "html_url": "https://github.com/BreadchainCoop/bread-kit/commit/3ebebdfff93ad3e96bdda9a8c36fb5712228fbc9"
             },
@@ -4591,7 +4591,7 @@
               "message": "fix: remove AI artifact",
               "author": "Hudson Headley",
               "author_login": "hudsonhrh",
-              "author_avatar_url": "https://avatars.githubusercontent.com/u/76409831?v=4",
+              "author_avatar_url": "./data/avatars/hudsonhrh.png",
               "date": "2025-05-06",
               "html_url": "https://github.com/BreadchainCoop/bread-kit/commit/36754ff9fcbaec5a7e49ade909912e6ff9ee4139"
             }

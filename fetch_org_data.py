@@ -10,12 +10,14 @@ Usage:
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
 import subprocess
 import sys
 import time
+import urllib.request
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -28,6 +30,10 @@ from typing import Optional
 
 CONFIG_FILE = Path(__file__).parent / "org_config.json"
 OUTPUT_FILE = Path(__file__).parent / "data" / "org_data.json"
+AVATARS_DIR = Path(__file__).parent / "data" / "avatars"
+
+# Track downloaded avatars to avoid duplicates
+downloaded_avatars: dict[str, str] = {}
 
 DEFAULT_CONFIG = {
     "organization": "BreadchainCoop",
@@ -67,6 +73,52 @@ def load_config() -> dict:
 def utc_now() -> datetime:
     """Get current time in UTC."""
     return datetime.now(timezone.utc)
+
+
+def download_avatar(avatar_url: str, username: str) -> Optional[str]:
+    """Download avatar image and return local path relative to data dir."""
+    if not avatar_url:
+        return None
+
+    # Check if already downloaded
+    if avatar_url in downloaded_avatars:
+        return downloaded_avatars[avatar_url]
+
+    # Create avatars directory if needed
+    AVATARS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Use username for filename, fallback to hash of URL
+    safe_username = re.sub(r'[^a-zA-Z0-9_-]', '_', username or '')
+    if not safe_username:
+        safe_username = hashlib.md5(avatar_url.encode()).hexdigest()[:12]
+
+    filename = f"{safe_username}.png"
+    local_path = AVATARS_DIR / filename
+    relative_path = f"./data/avatars/{filename}"
+
+    # Skip if already exists on disk
+    if local_path.exists():
+        downloaded_avatars[avatar_url] = relative_path
+        return relative_path
+
+    try:
+        # Add size parameter for smaller download
+        sized_url = f"{avatar_url}&s=64" if '?' in avatar_url else f"{avatar_url}?s=64"
+
+        # Download the image
+        req = urllib.request.Request(
+            sized_url,
+            headers={'User-Agent': 'Mozilla/5.0 (GitHub Activity Tracker)'}
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            with open(local_path, 'wb') as f:
+                f.write(response.read())
+
+        downloaded_avatars[avatar_url] = relative_path
+        return relative_path
+    except Exception as e:
+        print(f"  Warning: Failed to download avatar for {username}: {e}", file=sys.stderr)
+        return None
 
 
 # ============================================================================
@@ -359,13 +411,21 @@ def get_commits_between_branches(
             continue
         try:
             data = json.loads(line)
+            avatar_url = data.get("author_avatar_url", "")
+            author_login = data.get("author_login", "")
+
+            # Download avatar and get local path
+            local_avatar_path = None
+            if avatar_url:
+                local_avatar_path = download_avatar(avatar_url, author_login)
+
             commits.append({
                 "sha": data["sha"],
                 "short_sha": data["sha"][:7],
                 "message": data["message"].split('\n')[0][:80],
                 "author": data["author"],
-                "author_login": data.get("author_login", ""),
-                "author_avatar_url": data.get("author_avatar_url", ""),
+                "author_login": author_login,
+                "author_avatar_url": local_avatar_path or "",  # Use local path instead
                 "date": data["date"][:10],
                 "html_url": data["html_url"],
             })
@@ -598,6 +658,7 @@ def fetch_org_data(config: dict) -> dict:
     print(f"Total open PRs: {total_prs}")
     print(f"Repos with open issues: {len(issues_by_repo)}")
     print(f"Total open issues: {total_issues}")
+    print(f"Avatars downloaded: {len(downloaded_avatars)}")
 
     return result
 
