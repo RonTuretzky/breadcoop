@@ -402,10 +402,16 @@
         .theme-toggle { right: 220px; }
         .fit-button { right: 305px; }
         .lock-button { right: 380px; }
+        .view-toggle { right: 455px; }
 
         .lock-button.active {
             background: rgba(239, 68, 68, 0.3);
             border-color: rgba(239, 68, 68, 0.5);
+        }
+
+        .view-toggle.issues {
+            background: rgba(234, 179, 8, 0.3);
+            border-color: rgba(234, 179, 8, 0.5);
         }
 
         /* Light mode */
@@ -475,6 +481,11 @@
             <div class="subtitle">3D Visualization - Open PRs by Repository</div>
             <a href="#" id="org-link" class="org-link" target="_blank">View on GitHub</a>
         </div>
+
+        <button class="top-button view-toggle" id="view-toggle" onclick="toggleView()">
+            <span id="view-icon">⬡</span>
+            <span id="view-label">PRs</span>
+        </button>
 
         <button class="top-button lock-button" id="lock-button" onclick="toggleLock()">
             <span id="lock-icon">🔓</span>
@@ -628,6 +639,7 @@
     let currentData = null;
     let hiddenRepos = new Set();
     let hideMenuOpen = false;
+    let viewMode = 'prs';  // 'prs' or 'issues'
 
     // Avatar texture cache
     const avatarTextureCache = new Map();
@@ -754,13 +766,14 @@
         document.getElementById('org-link').href = `https://github.com/${org}`;
         document.getElementById('org-link').textContent = `github.com/${org}`;
 
-        document.getElementById('repo-count').textContent = currentData.stats?.repos_with_prs || 0;
-        document.getElementById('pr-count').textContent = currentData.stats?.total_open_prs || 0;
-
         if (currentData.generated_at) {
             const date = new Date(currentData.generated_at);
             document.getElementById('update-time').textContent = date.toLocaleString();
         }
+
+        // Update counts based on view mode
+        updateFooterCounts();
+        updateLegend();
 
         let passCount = 0, failCount = 0, pendingCount = 0;
         if (currentData.trees) {
@@ -775,6 +788,104 @@
         document.getElementById('pass-count').textContent = passCount;
         document.getElementById('fail-count').textContent = failCount;
         document.getElementById('pending-count').textContent = pendingCount;
+    }
+
+    function updateFooterCounts() {
+        if (!currentData) return;
+
+        if (viewMode === 'prs') {
+            document.getElementById('repo-count').textContent = currentData.stats?.repos_with_prs || 0;
+            document.getElementById('pr-count').textContent = currentData.stats?.total_open_prs || 0;
+            document.querySelector('.tracking-info').innerHTML = `
+                Tracking: <span id="repo-count">${currentData.stats?.repos_with_prs || 0}</span> repos |
+                <span id="pr-count">${currentData.stats?.total_open_prs || 0}</span> open PRs |
+                Press <kbd>\`</kbd> to hide/show
+            `;
+        } else {
+            document.querySelector('.tracking-info').innerHTML = `
+                Tracking: <span id="repo-count">${currentData.stats?.repos_with_issues || 0}</span> repos |
+                <span id="issue-count">${currentData.stats?.total_open_issues || 0}</span> open issues |
+                Press <kbd>\`</kbd> to hide/show
+            `;
+        }
+    }
+
+    function updateLegend() {
+        const legendPanel = document.getElementById('legend-panel');
+
+        if (viewMode === 'prs') {
+            legendPanel.innerHTML = `
+                <h3>Legend</h3>
+                <div class="legend-section">
+                    <h4>CI Status</h4>
+                    <div class="legend-item">
+                        <div class="pr-badge pr-pass">#123 ✓</div>
+                        <span>Passing</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="pr-badge pr-fail">#123 ✗</div>
+                        <span>Failing</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="pr-badge pr-pending">#123 ⋯</div>
+                        <span>Pending</span>
+                    </div>
+                </div>
+                <div class="legend-section">
+                    <h4>Node Types</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6366f1; width: 20px; height: 20px;"></div>
+                        <span>Repository</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #22c55e; width: 14px; height: 14px;"></div>
+                        <span>Pull Request</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #88aaff; width: 8px; height: 8px;"></div>
+                        <span>Commit</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            legendPanel.innerHTML = `
+                <h3>Legend</h3>
+                <div class="legend-section">
+                    <h4>Issue Labels</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ef4444; width: 14px; height: 14px; border-radius: 2px;"></div>
+                        <span>Bug</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #22c55e; width: 14px; height: 14px; border-radius: 2px;"></div>
+                        <span>Enhancement/Feature</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #8b5cf6; width: 14px; height: 14px; border-radius: 2px;"></div>
+                        <span>Help Wanted/Good First</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3b82f6; width: 14px; height: 14px; border-radius: 2px;"></div>
+                        <span>Documentation</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #eab308; width: 14px; height: 14px; border-radius: 2px;"></div>
+                        <span>Other</span>
+                    </div>
+                </div>
+                <div class="legend-section">
+                    <h4>Node Types</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6366f1; width: 20px; height: 20px;"></div>
+                        <span>Repository</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #eab308; width: 14px; height: 14px; border-radius: 2px;"></div>
+                        <span>Issue</span>
+                    </div>
+                </div>
+            `;
+        }
     }
 
     function countCIStatus(node, callback) {
@@ -899,6 +1010,14 @@
         clickableObjects = [];
         hoverableObjects = [];
 
+        if (viewMode === 'prs') {
+            buildPRsScene();
+        } else {
+            buildIssuesScene();
+        }
+    }
+
+    function buildPRsScene() {
         if (!currentData?.trees) return;
 
         const themeColors = getThemeColors();
@@ -919,6 +1038,122 @@
 
             buildRepoTree(tree, x, 0, z, repoName, themeColors);
         });
+    }
+
+    function buildIssuesScene() {
+        if (!currentData?.issues) return;
+
+        const themeColors = getThemeColors();
+        const repos = Object.entries(currentData.issues).filter(([name]) => !hiddenRepos.has(name));
+        const numRepos = repos.length;
+
+        if (numRepos === 0) return;
+
+        // Calculate grid layout for repos
+        const cols = Math.ceil(Math.sqrt(numRepos));
+        const spacing = 25;
+
+        repos.forEach(([repoName, repoData], index) => {
+            const col = index % cols;
+            const row = Math.floor(index / cols);
+            const x = (col - (cols - 1) / 2) * spacing;
+            const z = (row - Math.floor(numRepos / cols) / 2) * spacing;
+
+            buildIssueRepoTree(repoData, x, 0, z, repoName, themeColors);
+        });
+    }
+
+    function buildIssueRepoTree(repoData, x, y, z, repoName, themeColors) {
+        // Repo center sphere (same as PRs)
+        const repoGeom = new THREE.SphereGeometry(1.2, 32, 32);
+        const repoMat = new THREE.MeshPhongMaterial({
+            color: CONFIG.colors.default,
+            emissive: CONFIG.colors.default,
+            emissiveIntensity: 0.2,
+        });
+        const repoSphere = new THREE.Mesh(repoGeom, repoMat);
+        repoSphere.position.set(x, y, z);
+        repoSphere.userData = { isDataObject: true, type: 'repo', name: repoName, url: repoData.github_url };
+        scene.add(repoSphere);
+        clickableObjects.push(repoSphere);
+        hoverableObjects.push(repoSphere);
+
+        // Repo label
+        const repoLabel = createTextSprite(repoName, 0.8, '#ffffff');
+        repoLabel.position.set(x, y - 2.5, z);
+        repoLabel.userData = { isDataObject: true };
+        scene.add(repoLabel);
+
+        // Build issues radially around the repo as SQUARES
+        const issues = repoData.issues || [];
+        if (issues.length > 0) {
+            const baseRadius = 5;
+
+            issues.forEach((issue, index) => {
+                const angle = (index / issues.length) * Math.PI * 2;
+                const issueX = x + Math.cos(angle) * baseRadius;
+                const issueZ = z + Math.sin(angle) * baseRadius;
+                const issueY = y + 1.5;
+
+                buildIssueNode(issue, issueX, issueY, issueZ, x, y, z, repoName, themeColors);
+            });
+        }
+    }
+
+    function buildIssueNode(issue, x, y, z, parentX, parentY, parentZ, repoName, themeColors) {
+        // Use BOX geometry for issues (squares)
+        const issueColor = getIssueLabelColor(issue.labels);
+        const issueGeom = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+        const issueMat = new THREE.MeshPhongMaterial({
+            color: issueColor,
+            emissive: issueColor,
+            emissiveIntensity: 0.3,
+        });
+        const issueCube = new THREE.Mesh(issueGeom, issueMat);
+        issueCube.position.set(x, y, z);
+        issueCube.rotation.y = Math.PI / 4; // Rotate 45 degrees for diamond effect
+        issueCube.userData = {
+            isDataObject: true,
+            type: 'issue',
+            name: issue.title,
+            repoName: repoName,
+            issueNumber: issue.number,
+            issueTitle: issue.title,
+            issueUrl: issue.html_url,
+            issueAuthor: issue.author,
+            lastUpdated: issue.updated_at,
+            labels: issue.labels || [],
+            assignees: issue.assignees || [],
+            comments: issue.comments || 0,
+        };
+        scene.add(issueCube);
+        clickableObjects.push(issueCube);
+        hoverableObjects.push(issueCube);
+
+        // Connection line
+        const lineGeom = new THREE.BufferGeometry();
+        lineGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array([
+            parentX, parentY, parentZ, x, y, z
+        ]), 3));
+        const lineMat = new THREE.LineBasicMaterial({ color: themeColors.lineColor, transparent: true, opacity: 0.6 });
+        const line = new THREE.Line(lineGeom, lineMat);
+        line.userData = { isDataObject: true };
+        scene.add(line);
+
+        // Issue label
+        const label = createTextSprite(`#${issue.number}`, 0.5, '#eab308');
+        label.position.set(x, y + 1, z);
+        label.userData = { isDataObject: true };
+        scene.add(label);
+    }
+
+    function getIssueLabelColor(labels) {
+        // Check for common label types
+        if (labels.some(l => l.toLowerCase().includes('bug'))) return 0xef4444; // red
+        if (labels.some(l => l.toLowerCase().includes('enhancement') || l.toLowerCase().includes('feature'))) return 0x22c55e; // green
+        if (labels.some(l => l.toLowerCase().includes('help') || l.toLowerCase().includes('good first'))) return 0x8b5cf6; // purple
+        if (labels.some(l => l.toLowerCase().includes('documentation'))) return 0x3b82f6; // blue
+        return 0xeab308; // default yellow/orange for issues
     }
 
     function buildRepoTree(tree, x, y, z, repoName, themeColors) {
@@ -1136,9 +1371,17 @@
         const reposList = document.getElementById('repos-list');
         reposList.innerHTML = '';
 
-        if (!currentData?.trees) return;
+        // Get repos based on current view mode
+        let repoNames = [];
+        if (viewMode === 'prs' && currentData?.trees) {
+            repoNames = Object.keys(currentData.trees);
+        } else if (viewMode === 'issues' && currentData?.issues) {
+            repoNames = Object.keys(currentData.issues);
+        }
 
-        Object.keys(currentData.trees).sort().forEach(repoName => {
+        if (repoNames.length === 0) return;
+
+        repoNames.sort().forEach(repoName => {
             const isHidden = hiddenRepos.has(repoName);
             const item = document.createElement('div');
             item.className = `menu-item ${isHidden ? 'hidden' : ''}`;
@@ -1237,7 +1480,7 @@
 
         if (intersects.length > 0) {
             const obj = intersects[0].object;
-            const url = obj.userData.prUrl || obj.userData.url || obj.userData.html_url;
+            const url = obj.userData.prUrl || obj.userData.issueUrl || obj.userData.url || obj.userData.html_url;
             if (url) window.open(url, '_blank');
         }
     }
@@ -1257,6 +1500,41 @@
                 tooltip.querySelector('.tooltip-author').textContent = data.author ? `by ${data.author}` : '';
                 tooltip.querySelector('.tooltip-time').textContent = data.date || '';
                 tooltip.querySelector('.tooltip-labels').innerHTML = '';
+            } else if (data.type === 'issue') {
+                // Issue tooltip
+                tooltip.querySelector('.tooltip-title').textContent = `#${data.issueNumber}: ${data.issueTitle || 'Unknown'}`;
+                tooltip.querySelector('.tooltip-repo').textContent = data.repoName || '';
+                tooltip.querySelector('.tooltip-author').textContent = data.issueAuthor ? `by @${data.issueAuthor}` : '';
+
+                if (data.lastUpdated) {
+                    const date = new Date(data.lastUpdated);
+                    let timeText = `Updated ${getTimeAgo(date)}`;
+                    if (data.comments > 0) {
+                        timeText += ` • ${data.comments} comment${data.comments > 1 ? 's' : ''}`;
+                    }
+                    tooltip.querySelector('.tooltip-time').textContent = timeText;
+                } else {
+                    tooltip.querySelector('.tooltip-time').textContent = '';
+                }
+
+                const labelsContainer = tooltip.querySelector('.tooltip-labels');
+                labelsContainer.innerHTML = '';
+                // Show assignees if any
+                if (data.assignees && data.assignees.length > 0) {
+                    const assigneeTag = document.createElement('span');
+                    assigneeTag.className = 'label-tag';
+                    assigneeTag.style.background = 'rgba(34, 197, 94, 0.3)';
+                    assigneeTag.style.color = '#22c55e';
+                    assigneeTag.textContent = `👤 ${data.assignees.join(', ')}`;
+                    labelsContainer.appendChild(assigneeTag);
+                }
+                // Show labels
+                (data.labels || []).forEach(label => {
+                    const tag = document.createElement('span');
+                    tag.className = 'label-tag';
+                    tag.textContent = label;
+                    labelsContainer.appendChild(tag);
+                });
             } else {
                 // PR or repo tooltip
                 tooltip.querySelector('.tooltip-title').textContent = data.prTitle || data.name || 'Unknown';
@@ -1334,9 +1612,35 @@
         document.getElementById('lock-label').textContent = isLocked ? 'Locked' : 'Lock';
     }
 
+    function toggleView() {
+        viewMode = viewMode === 'prs' ? 'issues' : 'prs';
+        const btn = document.getElementById('view-toggle');
+        btn.classList.toggle('issues', viewMode === 'issues');
+        document.getElementById('view-icon').textContent = viewMode === 'prs' ? '⬡' : '⬢';
+        document.getElementById('view-label').textContent = viewMode === 'prs' ? 'PRs' : 'Issues';
+
+        // Update subtitle
+        document.querySelector('#header .subtitle').textContent =
+            viewMode === 'prs'
+                ? '3D Visualization - Open PRs by Repository'
+                : '3D Visualization - Open Issues by Repository';
+
+        // Update footer counts and legend for new view mode
+        updateFooterCounts();
+        updateLegend();
+        buildHideMenu();
+
+        if (!isLocked) buildScene();
+    }
+
     function fitToScreen() {
-        if (!currentData?.trees) return;
-        const numRepos = Object.keys(currentData.trees).filter(n => !hiddenRepos.has(n)).length;
+        // Get repo count based on current view mode
+        let numRepos = 0;
+        if (viewMode === 'prs' && currentData?.trees) {
+            numRepos = Object.keys(currentData.trees).filter(n => !hiddenRepos.has(n)).length;
+        } else if (viewMode === 'issues' && currentData?.issues) {
+            numRepos = Object.keys(currentData.issues).filter(n => !hiddenRepos.has(n)).length;
+        }
         if (numRepos === 0) return;
 
         const cols = Math.ceil(Math.sqrt(numRepos));

@@ -103,6 +103,20 @@ class PRInfo:
 
 
 @dataclass
+class IssueInfo:
+    number: int
+    title: str
+    author: str
+    created_at: str
+    updated_at: str
+    html_url: str
+    state: str = "open"
+    labels: list = field(default_factory=list)
+    assignees: list = field(default_factory=list)
+    comments: int = 0
+
+
+@dataclass
 class CommitInfo:
     sha: str
     short_sha: str
@@ -253,6 +267,41 @@ def get_repo_prs(repo_full_name: str) -> list[PRInfo]:
                 mergeable=pr.get("mergeable") != "CONFLICTING",
             ))
         return prs
+    except json.JSONDecodeError:
+        return []
+
+
+def get_repo_issues(repo_full_name: str) -> list[IssueInfo]:
+    """Fetch open issues for a repository (excludes PRs)."""
+    output = run_gh_command([
+        "issue", "list",
+        "--repo", repo_full_name,
+        "--state", "open",
+        "--json", "number,title,author,createdAt,updatedAt,url,state,labels,assignees,comments"
+    ])
+
+    if not output:
+        return []
+
+    try:
+        issues_data = json.loads(output)
+        issues = []
+        for issue in issues_data:
+            labels = [l.get("name", "") for l in issue.get("labels", [])]
+            assignees = [a.get("login", "") for a in issue.get("assignees", [])]
+            issues.append(IssueInfo(
+                number=issue["number"],
+                title=issue["title"],
+                author=issue.get("author", {}).get("login", "unknown"),
+                created_at=issue.get("createdAt", ""),
+                updated_at=issue.get("updatedAt", ""),
+                html_url=issue.get("url", ""),
+                state=issue.get("state", "open"),
+                labels=labels,
+                assignees=assignees,
+                comments=issue.get("comments", 0),
+            ))
+        return issues
     except json.JSONDecodeError:
         return []
 
@@ -464,6 +513,7 @@ def fetch_org_data(config: dict) -> dict:
     org = config["organization"]
     fetch_prs = config.get("fetch_prs", True)
     fetch_ci = config.get("fetch_ci", True)
+    fetch_issues = config.get("fetch_issues", True)
 
     start_time = time.time()
 
@@ -473,7 +523,9 @@ def fetch_org_data(config: dict) -> dict:
         return {"error": f"No repositories found for {org}"}
 
     trees = {}
+    issues_by_repo = {}
     total_prs = 0
+    total_issues = 0
 
     for i, repo in enumerate(repos):
         print(f"[{i+1}/{len(repos)}] Processing {repo.name}...")
@@ -492,6 +544,30 @@ def fetch_org_data(config: dict) -> dict:
         else:
             prs = []
 
+        # Get issues for this repo
+        if fetch_issues:
+            issues = get_repo_issues(repo.full_name)
+            if issues:
+                issues_by_repo[repo.name] = {
+                    "repo_name": repo.name,
+                    "github_url": repo.html_url,
+                    "issues": [
+                        {
+                            "number": issue.number,
+                            "title": issue.title,
+                            "author": issue.author,
+                            "created_at": issue.created_at,
+                            "updated_at": issue.updated_at,
+                            "html_url": issue.html_url,
+                            "labels": issue.labels,
+                            "assignees": issue.assignees,
+                            "comments": issue.comments,
+                        }
+                        for issue in issues
+                    ]
+                }
+                total_issues += len(issues)
+
         # Build tree for this repo (only if it has PRs)
         if prs:
             fetch_commits = config.get("fetch_commits", True)
@@ -507,9 +583,12 @@ def fetch_org_data(config: dict) -> dict:
         "stats": {
             "total_repos": len(repos),
             "repos_with_prs": len(trees),
+            "repos_with_issues": len(issues_by_repo),
             "total_open_prs": total_prs,
+            "total_open_issues": total_issues,
         },
         "trees": trees,
+        "issues": issues_by_repo,
         "stale_minutes": config.get("stale_minutes", 60),
     }
 
@@ -517,6 +596,8 @@ def fetch_org_data(config: dict) -> dict:
     print(f"Repos processed: {len(repos)}")
     print(f"Repos with open PRs: {len(trees)}")
     print(f"Total open PRs: {total_prs}")
+    print(f"Repos with open issues: {len(issues_by_repo)}")
+    print(f"Total open issues: {total_issues}")
 
     return result
 
