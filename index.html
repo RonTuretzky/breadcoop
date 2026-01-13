@@ -1129,6 +1129,10 @@
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(scale * 4, scale, 1);
 
+        // Mark as label for zoom-independent scaling
+        sprite.userData.isLabel = true;
+        sprite.userData.baseScale = { x: scale * 4, y: scale, z: 1 };
+
         return sprite;
     }
 
@@ -1359,6 +1363,22 @@
 
     function animate() {
         requestAnimationFrame(animate);
+
+        // Scale labels to maintain constant apparent size regardless of zoom
+        const referenceRadius = 80; // Default camera radius
+        const zoomScale = cameraRadius / referenceRadius;
+
+        scene.traverse((child) => {
+            if (child.isSprite && child.userData.isLabel && child.userData.baseScale) {
+                const base = child.userData.baseScale;
+                child.scale.set(
+                    base.x * zoomScale,
+                    base.y * zoomScale,
+                    base.z
+                );
+            }
+        });
+
         renderer.render(scene, camera);
     }
 
