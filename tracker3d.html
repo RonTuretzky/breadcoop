@@ -651,6 +651,54 @@
             border-color: rgba(100, 149, 237, 0.4);
         }
 
+        /* Fullscreen button */
+        .fullscreen-button {
+            position: absolute;
+            top: 20px;
+            right: 585px;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            color: #e0e0e0;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .fullscreen-button:hover {
+            background: rgba(30, 30, 40, 0.9);
+        }
+
+        .fullscreen-button.active {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .fullscreen-button .icon {
+            font-size: 14px;
+        }
+
+        body.light-mode .fullscreen-button {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+
+        body.light-mode .fullscreen-button:hover {
+            background: rgba(240, 240, 245, 0.95);
+        }
+
+        body.light-mode .fullscreen-button.active {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.4);
+        }
+
         /* Emoji legend for colorblind mode */
         #emoji-legend {
             display: none;
@@ -914,6 +962,11 @@
             <h1>CONDUCTOR WORKTREE TRACKER</h1>
             <div class="subtitle">3D Visualization</div>
         </div>
+
+        <button class="fullscreen-button" id="fullscreen-button" onclick="toggleFullscreen()">
+            <span class="icon" id="fullscreen-icon">⛶</span>
+            <span id="fullscreen-label">Full</span>
+        </button>
 
         <button class="colorblind-button" id="colorblind-button" onclick="toggleColorblind()">
             <span class="icon" id="colorblind-icon">👁</span>
@@ -1372,6 +1425,56 @@
         localStorage.setItem('conductor-tracker-colorblind', state.colorblind ? 'true' : 'false');
     }
 
+    function toggleFullscreen() {
+        const container = document.getElementById('container');
+        const button = document.getElementById('fullscreen-button');
+        const icon = document.getElementById('fullscreen-icon');
+        const label = document.getElementById('fullscreen-label');
+
+        if (!document.fullscreenElement) {
+            // Enter fullscreen
+            if (container.requestFullscreen) {
+                container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            } else if (container.mozRequestFullScreen) {
+                container.mozRequestFullScreen();
+            } else if (container.msRequestFullscreen) {
+                container.msRequestFullscreen();
+            }
+        } else {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
+    }
+
+    function updateFullscreenButton() {
+        const button = document.getElementById('fullscreen-button');
+        const icon = document.getElementById('fullscreen-icon');
+        const label = document.getElementById('fullscreen-label');
+
+        if (document.fullscreenElement) {
+            button.classList.add('active');
+            icon.textContent = '⛶';
+            label.textContent = 'Exit';
+        } else {
+            button.classList.remove('active');
+            icon.textContent = '⛶';
+            label.textContent = 'Full';
+        }
+
+        // Resize the renderer after fullscreen change
+        onWindowResize();
+    }
+
     function loadSavedColorblind() {
         const saved = localStorage.getItem('conductor-tracker-colorblind');
         if (saved === 'true') {
@@ -1544,6 +1647,10 @@
         canvas.addEventListener('click', onClick);
         canvas.addEventListener('wheel', onWheel);
         document.addEventListener('keydown', onKeyDown);
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+        document.addEventListener('mozfullscreenchange', updateFullscreenButton);
+        document.addEventListener('MSFullscreenChange', updateFullscreenButton);
     }
 
     function updateCameraPosition() {
@@ -1712,6 +1819,9 @@
         } else if (event.key === 'c' || event.key === 'C') {
             // Toggle colorblind mode with 'c' key
             toggleColorblind();
+        } else if (event.key === 's' || event.key === 'S') {
+            // Toggle fullscreen with 's' key
+            toggleFullscreen();
         } else if (event.key === '0' && state.hideMenuOpen) {
             state.hiddenWorkspaces.clear();
             state.hiddenRepos.clear();
@@ -1875,37 +1985,82 @@
 
     function buildWorkspaceNodes(nodes, group, parentX, parentZ, depth, baseAngle, childIndex, githubUrl) {
         nodes.forEach((node, index) => {
-            // Check if this is an orphan PR (has PR but no workspace)
-            const isOrphanPR = !node.workspace_id && node.pr_number;
+            // Calculate position for this node (used for both workspace nodes and intermediate PR nodes)
+            const spreadFactor = 0.6;
+            const angleOffset = (index - (nodes.length - 1) / 2) * spreadFactor;
+            const nodeAngle = baseAngle + angleOffset;
+            const distance = 3 + depth * 2;
 
-            if (!node.workspace_id && !isOrphanPR) {
-                // Node without worktree AND without PR - still recurse for children
+            const x = parentX + Math.cos(nodeAngle) * distance;
+            const z = parentZ + Math.sin(nodeAngle) * distance;
+            const y = depth * 0.3;
+
+            if (!node.workspace_id) {
+                // Node without worktree (intermediate PR) - create a dimmed placeholder node
+                // and use its position for children so hierarchy is visually correct
+                if (node.pr_number) {
+                    // Create a small dimmed sphere for the intermediate PR
+                    const themeColors = getThemeColors();
+                    const geometry = new THREE.SphereGeometry(0.15, 16, 16);
+                    const material = new THREE.MeshStandardMaterial({
+                        color: isDarkMode ? 0x666688 : 0xaaaacc,
+                        transparent: true,
+                        opacity: 0.5,
+                        metalness: 0.3,
+                        roughness: 0.7
+                    });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(x, y, z);
+                    mesh.userData = {
+                        type: 'intermediate_pr',
+                        prNumber: node.pr_number,
+                        prTitle: node.pr_title || node.name,
+                        branch: node.branch,
+                        githubUrl: githubUrl
+                    };
+                    group.add(mesh);
+
+                    // Create connection line from parent to this intermediate node
+                    const parentY = depth > 0 ? (depth - 1) * 0.3 : 0;
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(parentX, parentY, parentZ),
+                        new THREE.Vector3(x, y, z)
+                    ]);
+                    const lineMaterial = new THREE.LineBasicMaterial({
+                        color: isDarkMode ? 0x444466 : 0xaaaacc,
+                        transparent: true,
+                        opacity: 0.4
+                    });
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    group.add(line);
+                    state.lines.push(line);
+
+                    // Create a floating label for the intermediate PR
+                    const labelText = `PR #${node.pr_number}`;
+                    const label = createTextSprite(labelText, {
+                        fontSize: 20,
+                        fontColor: isDarkMode ? 'rgba(150, 150, 180, 0.8)' : 'rgba(100, 100, 140, 0.8)',
+                        backgroundColor: 'transparent'
+                    });
+                    label.position.set(x, y + 0.4, z);
+                    label.scale.set(1.2, 0.4, 1);
+                    group.add(label);
+                }
+
+                // Recurse for children using THIS node's position
                 if (node.children && node.children.length > 0) {
-                    buildWorkspaceNodes(node.children, group, parentX, parentZ, depth, baseAngle, index, githubUrl);
+                    buildWorkspaceNodes(node.children, group, x, z, depth + 1, nodeAngle, index, githubUrl);
                 }
                 return;
             }
 
-            // Use branch as identifier for orphan PRs
-            const nodeId = node.workspace_id || `pr-${node.branch}`;
-
-            if (node.workspace_id && state.hiddenWorkspaces.has(node.workspace_id)) return;
-
-            // Calculate position with more spread
-            const spreadFactor = 0.6; // Increased spread between sibling nodes
-            const angleOffset = (index - (nodes.length - 1) / 2) * spreadFactor;
-            const nodeAngle = baseAngle + angleOffset;
-            const distance = 3 + depth * 2; // Increased distance from center
-
-            const x = parentX + Math.cos(nodeAngle) * distance;
-            const z = parentZ + Math.sin(nodeAngle) * distance;
-            const y = depth * 0.3; // Slight vertical offset per depth level (going up)
+            if (state.hiddenWorkspaces.has(node.workspace_id)) return;
 
             // Create workspace node
-            const mesh = createWorkspaceNode(node, githubUrl, isOrphanPR);
+            const mesh = createWorkspaceNode(node, githubUrl);
             mesh.position.set(x, y, z);
             group.add(mesh);
-            state.nodes.set(nodeId, mesh);
+            state.nodes.set(node.workspace_id, mesh);
 
             // Parent position
             const parentY = depth > 0 ? (depth - 1) * 0.3 : 0;
@@ -2133,7 +2288,7 @@
         return sprite;
     }
 
-    function createWorkspaceNode(node, githubUrl, isOrphanPR = false) {
+    function createWorkspaceNode(node, githubUrl) {
         const click = node.click_record;
         const status = node.session_status;
 
@@ -2149,29 +2304,17 @@
             minutesAgo = (Date.now() - new Date(click.last_seen).getTime()) / 60000;
         }
 
-        let mesh;
-        if (isOrphanPR) {
-            // Orphan PR: Create wireframe sphere to indicate no workspace
-            const geometry = new THREE.SphereGeometry(0.3, 16, 16);
-            const wireframeMaterial = new THREE.MeshBasicMaterial({
-                color: isDarkMode ? 0x6666aa : 0x8888cc,
-                wireframe: true,
-                transparent: true,
-                opacity: 0.7
-            });
-            mesh = new THREE.Mesh(geometry, wireframeMaterial);
-        } else {
-            // Normal workspace: Create solid sphere with vibrant color
-            const geometry = new THREE.SphereGeometry(0.3, 32, 32);
-            const material = new THREE.MeshStandardMaterial({
-                color: color,
-                emissive: color,
-                emissiveIntensity: state.colorblind ? 0.3 : 0.5,
-                metalness: 0.1,
-                roughness: 0.8,
-            });
-            mesh = new THREE.Mesh(geometry, material);
-        }
+        // Create main sphere with vibrant color (or grayscale in colorblind mode)
+        const geometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const material = new THREE.MeshStandardMaterial({
+            color: color,
+            emissive: color,
+            emissiveIntensity: state.colorblind ? 0.3 : 0.5,  // Less emissive for grayscale
+            metalness: 0.1,
+            roughness: 0.8,
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
         // Store github_url in node data for click handling
         node.github_url = githubUrl || node.github_url;
         mesh.userData = {
@@ -2181,45 +2324,40 @@
         };
 
         // Add model indicator for working sessions (no ring, just the label)
-        // Skip these indicators for orphan PRs (no workspace = no session)
-        if (!isOrphanPR) {
-            if (status && status.status === 'working' && status.model) {
-                const modelLabel = createTextSprite(status.model, {
-                    fontsize: 10,
-                    backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                    textColor: '#ffffff',
-                    padding: 6
-                });
-                modelLabel.position.set(0.5, 0.2, 0);
-                modelLabel.scale.set(0.5, 0.25, 1);
-                mesh.add(modelLabel);
-            } else if (!status || status.status !== 'working') {
-                // Add awaiting icon for non-working sessions
-                const awaitingIcon = createAwaitingIcon();
-                awaitingIcon.position.set(0, 0, 0.35);  // Positioned in front of the ball
-                awaitingIcon.userData.isAwaitingIcon = true;
-                mesh.add(awaitingIcon);
-            }
+        if (status && status.status === 'working' && status.model) {
+            const modelLabel = createTextSprite(status.model, {
+                fontsize: 10,
+                backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                textColor: '#ffffff',
+                padding: 6
+            });
+            modelLabel.position.set(0.5, 0.2, 0);
+            modelLabel.scale.set(0.5, 0.25, 1);
+            mesh.add(modelLabel);
+        } else if (!status || status.status !== 'working') {
+            // Add awaiting icon for non-working sessions
+            const awaitingIcon = createAwaitingIcon();
+            awaitingIcon.position.set(0, 0, 0.35);  // Positioned in front of the ball
+            awaitingIcon.userData.isAwaitingIcon = true;
+            mesh.add(awaitingIcon);
+        }
 
-            // In colorblind mode, add emoji indicator for freshness
-            if (state.colorblind) {
-                const freshnessEmoji = getFreshnessEmoji(statusScore);
-                const emojiSprite = createEmojiSprite(freshnessEmoji);
-                emojiSprite.position.set(-0.4, 0.4, 0);  // Top-left of ball
-                emojiSprite.scale.set(0.35, 0.35, 1);
-                emojiSprite.userData.isEmojiIndicator = true;
-                emojiSprite.userData.orbitRadius = 0.5;
-                mesh.add(emojiSprite);
-            }
+        // In colorblind mode, add emoji indicator for freshness
+        if (state.colorblind) {
+            const freshnessEmoji = getFreshnessEmoji(statusScore);
+            const emojiSprite = createEmojiSprite(freshnessEmoji);
+            emojiSprite.position.set(-0.4, 0.4, 0);  // Top-left of ball
+            emojiSprite.scale.set(0.35, 0.35, 1);
+            emojiSprite.userData.isEmojiIndicator = true;
+            emojiSprite.userData.orbitRadius = 0.5;
+            mesh.add(emojiSprite);
         }
 
         // CI status will be shown in the PR label above the ball
 
         // Calculate time text for display in PR label area
         let timeText;
-        if (isOrphanPR) {
-            timeText = 'n/a';  // Orphan PRs have no workspace activity
-        } else if (minutesAgo === 0) {
+        if (minutesAgo === 0) {
             timeText = 'never';
         } else if (minutesAgo < 1) {
             timeText = 'now';
@@ -2232,7 +2370,7 @@
         }
         // Store for use in PR label
         mesh.userData.timeText = timeText;
-        mesh.userData.timeColor = isOrphanPR ? '#888888' : (statusScore < 0.5 ? '#88ff88' : (statusScore < 0.75 ? '#ffcc44' : '#ff6666'));
+        mesh.userData.timeColor = statusScore < 0.5 ? '#88ff88' : (statusScore < 0.75 ? '#ffcc44' : '#ff6666');
 
         // Add name label - show full PR title, positioned to orbit around ball
         const displayName = node.pr_title || node.name;
