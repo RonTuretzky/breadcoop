@@ -1203,7 +1203,7 @@
         // Repo label
         const repoLabel = createTextSprite(repoName, 0.8, '#ffffff');
         repoLabel.position.set(x, y - 2.5, z);
-        repoLabel.userData = { isDataObject: true };
+        repoLabel.userData.isDataObject = true;
         scene.add(repoLabel);
 
         // Build issues radially around the repo as SQUARES
@@ -1265,7 +1265,7 @@
         // Issue label
         const label = createTextSprite(`#${issue.number}`, 0.5, '#eab308');
         label.position.set(x, y + 1, z);
-        label.userData = { isDataObject: true };
+        label.userData.isDataObject = true;
         scene.add(label);
     }
 
@@ -1296,7 +1296,7 @@
         // Repo label (below the repo)
         const repoLabel = createTextSprite(repoName, 0.8, '#ffffff');
         repoLabel.position.set(x, y - 2.5, z);
-        repoLabel.userData = { isDataObject: true };
+        repoLabel.userData.isDataObject = true;
         scene.add(repoLabel);
 
         // Build PRs radially around the repo
@@ -1413,7 +1413,7 @@
         const ciIcon = getCIIcon(node.ci_status);
         const label = createTextSprite(`${labelText} ${ciIcon}`, 0.5, getLabelColor(node.ci_status));
         label.position.set(x, y + 1, z);
-        label.userData = { isDataObject: true };
+        label.userData.isDataObject = true;
         scene.add(label);
 
         // Recursive children (stacked PRs) - continue outward radially
