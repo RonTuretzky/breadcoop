@@ -953,6 +953,8 @@
         const material = new THREE.SpriteMaterial({
             map: placeholderTexture,
             transparent: true,
+            depthTest: false,
+            depthWrite: false,
         });
         const sprite = new THREE.Sprite(material);
 
