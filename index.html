@@ -814,6 +814,9 @@
         canvas.height = size;
         const ctx = canvas.getContext('2d');
 
+        // Save context before clipping
+        ctx.save();
+
         // Create circular clipping path
         ctx.beginPath();
         ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
@@ -823,11 +826,14 @@
         // Draw the image centered and scaled to fill
         ctx.drawImage(img, 0, 0, size, size);
 
-        // Draw border
+        // Restore context to remove clipping
+        ctx.restore();
+
+        // Draw border (after restoring so it's not clipped)
         ctx.beginPath();
         ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
         ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 3;
         ctx.stroke();
 
         const texture = new THREE.CanvasTexture(canvas);
@@ -843,6 +849,8 @@
         const material = new THREE.SpriteMaterial({
             map: placeholderTexture,
             transparent: true,
+            depthTest: false,
+            depthWrite: false,
         });
         const sprite = new THREE.Sprite(material);
 
@@ -864,6 +872,7 @@
                 material.needsUpdate = true;
             };
             img.onerror = function() {
+                console.warn('Failed to load avatar:', avatarUrl);
                 avatarTextureCache.set(avatarUrl, 'error');
             };
             img.src = sizedUrl;
