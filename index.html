@@ -793,16 +793,15 @@
     function updateFooterCounts() {
         if (!currentData) return;
 
+        const trackingInfo = document.querySelector('.tracking-info');
         if (viewMode === 'prs') {
-            document.getElementById('repo-count').textContent = currentData.stats?.repos_with_prs || 0;
-            document.getElementById('pr-count').textContent = currentData.stats?.total_open_prs || 0;
-            document.querySelector('.tracking-info').innerHTML = `
+            trackingInfo.innerHTML = `
                 Tracking: <span id="repo-count">${currentData.stats?.repos_with_prs || 0}</span> repos |
                 <span id="pr-count">${currentData.stats?.total_open_prs || 0}</span> open PRs |
                 Press <kbd>\`</kbd> to hide/show
             `;
         } else {
-            document.querySelector('.tracking-info').innerHTML = `
+            trackingInfo.innerHTML = `
                 Tracking: <span id="repo-count">${currentData.stats?.repos_with_issues || 0}</span> repos |
                 <span id="issue-count">${currentData.stats?.total_open_issues || 0}</span> open issues |
                 Press <kbd>\`</kbd> to hide/show
