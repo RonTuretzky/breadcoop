@@ -1,198 +1,155 @@
-# Conductor Worktree Tracker
+# GitHub Organization Activity Tracker
 
-A terminal CLI tool that monitors [Conductor](https://conductor.app)'s SQLite database and displays worktrees you've visited with growing time indicators, PR hierarchy visualization, and CI/CD status.
+A 3D visualization tool for tracking GitHub organization activity - open PRs, CI status, and repository health. Originally forked from the Conductor Worktree Tracker, this version works with any GitHub organization and can be hosted on GitHub Pages.
+
+**[View BreadchainCoop Dashboard](https://breadchaincoop.github.io/org-activity-tracker/)** (once deployed)
 
 ## Features
 
-- **Radial Layout**: Circular display with repos positioned around an ellipse, trees branching outward
-- **PR Integration**: Shows PR titles and numbers, with hierarchy based on PR base/head relationships
-- **CI/CD Status**: Live status indicators for GitHub Actions (✓ pass, ✗ fail, animated spinner for pending)
-- **Session Status**: Shows which worktrees have active Claude sessions (working/idle)
-- **Smart Branch Detection**: Detects actual git branches even when Conductor's database is stale
+- **3D Visualization**: Interactive Three.js scene showing repositories and PRs as interconnected nodes
+- **PR Hierarchy**: Stacked PRs are visualized as connected trees
+- **CI/CD Status**: Live status indicators for GitHub Actions (green=pass, red=fail, yellow=pending)
+- **PR Freshness**: Color-coded nodes based on last update time
+- **Static Hosting**: Works on GitHub Pages with periodic data updates via GitHub Actions
+- **No Server Required**: Pure client-side rendering with pre-generated JSON data
 
 ## Quick Start
 
+### View Locally
+
 ```bash
-# Run with defaults (radial view, today's activity)
-python3 tracker.py
+# Generate data
+python3 fetch_org_data.py
 
-# Run once and exit (for testing)
-python3 tracker.py --once
+# Serve locally (Python 3)
+python3 -m http.server 8000
 
-# 5-minute stale threshold
-python3 tracker.py --stale 5
-
-# Skip PR fetching for faster startup
-python3 tracker.py --no-prs
-
-# Show diagnostic info (terminal size, cache status)
-python3 tracker.py --diag
+# Open http://localhost:8000 in browser
 ```
+
+### Deploy to GitHub Pages
+
+1. Fork this repository
+2. Update `org_config.json` with your organization name
+3. Enable GitHub Pages in repository settings (Settings > Pages > Source: GitHub Actions)
+4. The data will auto-update every 15 minutes via GitHub Actions
 
 ## Configuration
 
-All settings can be configured via `config.json` in the same directory as `tracker.py`. CLI arguments override config file values.
-
-### config.json
+All settings are configured in `org_config.json`:
 
 ```json
 {
-  "stale_minutes": 30,
-  "interval_seconds": 2.0,
-  "show_hierarchy": true,
-  "tree_layout": false,
+  "organization": "BreadchainCoop",
+  "stale_minutes": 60,
+  "max_repos": 50,
   "fetch_prs": true,
-  "since": "today",
-  "debug": false,
-  "pr_refresh_minutes": 5,
-  "show_status": true,
-  "pomodoro_enabled": false,
-  "pomodoro_work_minutes": 25,
-  "pomodoro_break_minutes": 5
+  "fetch_ci": true,
+  "refresh_interval_minutes": 15,
+  "repo_filters": {
+    "exclude": [],
+    "include_archived": false,
+    "min_pushed_days_ago": 365
+  }
 }
 ```
 
-### Configuration Variables
+### Configuration Options
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `stale_minutes` | int | `30` | Minutes before a worktree is marked as stale (red + `!`). |
-| `interval_seconds` | float | `2.0` | How often to poll the Conductor database for changes. |
-| `show_hierarchy` | bool | `true` | Show PR-based hierarchy structure. When false, shows flat list. |
-| `tree_layout` | bool | `false` | Use traditional tree layout instead of radial. |
-| `fetch_prs` | bool | `true` | Query GitHub for open PRs to determine hierarchy and show CI status. |
-| `since` | string | `"today"` | Activity lookback: `"today"` for since midnight, or hours (e.g., `"2"`). |
-| `debug` | bool | `false` | Show debug output for click detection and PR hierarchy building. |
-| `pr_refresh_minutes` | int | `5` | How often to refresh PR data from GitHub. |
-| `show_status` | bool | `true` | Show session status indicators (working/idle/error). |
-| `pomodoro_enabled` | bool | `false` | Enable pomodoro timer mode with reflection prompts. |
-| `pomodoro_work_minutes` | int | `25` | Duration of work sessions in pomodoro mode. |
-| `pomodoro_break_minutes` | int | `5` | Duration of breaks in pomodoro mode. |
+| `organization` | string | `"BreadchainCoop"` | GitHub organization to track |
+| `stale_minutes` | int | `60` | Minutes before a PR is considered stale |
+| `max_repos` | int | `50` | Maximum repositories to process |
+| `fetch_prs` | bool | `true` | Fetch open PRs for each repository |
+| `fetch_ci` | bool | `true` | Fetch CI status for each PR |
+| `refresh_interval_minutes` | int | `15` | How often GitHub Actions refreshes data |
+| `repo_filters.exclude` | array | `[]` | Repository names to exclude |
+| `repo_filters.include_archived` | bool | `false` | Include archived repositories |
+| `repo_filters.min_pushed_days_ago` | int | `365` | Only include repos pushed within this many days |
 
-## CLI Arguments
+## Data Generation
 
-CLI arguments override config.json values:
+The `fetch_org_data.py` script generates `data/org_data.json` containing:
 
-```
-python3 tracker.py [options]
+- Organization metadata
+- Repository information
+- Open PRs with CI status
+- PR hierarchy (stacked PRs)
 
---stale MINUTES      Minutes before worktree shows as stale
---interval SECONDS   Database polling interval in seconds
---no-hierarchy       Disable PR hierarchy, show flat list
---tree               Use tree layout instead of default radial
---no-prs             Skip GitHub PR queries (faster startup)
---once               Run once and exit (for testing)
---since VALUE        Activity lookback: "today" or hours
---debug              Show debug output
---no-status          Hide session status indicators
---pomodoro           Enable pomodoro timer mode
---diag               Show diagnostic info (terminal size, cache status)
+```bash
+# Run with defaults from org_config.json
+python3 fetch_org_data.py
+
+# Override organization
+python3 fetch_org_data.py --org MyOrganization
+
+# Custom output path
+python3 fetch_org_data.py --output ./custom-path/data.json
 ```
 
-## Display Format
+## GitHub Actions Workflows
 
-### Radial View (default)
+### Data Update (`update-data.yml`)
 
-Circular layout with repos positioned around an ellipse. Trees branch outward based on quadrant (up/down/left/right):
+Runs every 15 minutes to refresh PR and CI data:
+- Fetches latest organization data
+- Only commits if data has changed
+- Uses `[skip ci]` to avoid deploy loops
 
-```
-CONDUCTOR WORKTREE TRACKER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                                               ┌─ STATUS ───────────┐
-                                               │ █ ⠋ 3 WORKING █    │
-               ┌ ⠋ san-juan-v2 █ now           │   ○ 10 idle        │
-               ● etherform                     └────────────────────┘
+### Deploy (`deploy.yml`)
 
-         conductor-cli ●           ● gas-killer-router
-                                   ├ ○ feat: add configu #62 ████ 7h ago !
-                                   ├ ○ fix: fail on stor #65 ███ 13m ago
-                                   └ ⠋ luxembourg █ now
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Tracking: 12 worktrees | Session: 15m
-```
-
-### Tree View (`--tree`)
-
-Traditional tree layout with full hierarchy:
-
-```
-CONDUCTOR WORKTREE TRACKER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-gas-analyzer-rs
-├── ✓ sacramento (#76)                  now  █  @ 22:45
-└── ○ san-jose                          now  █  @ 22:45
-
-conductor-cli
-└── ⠋ Add Conductor Worktree (#1)    5m ago  ███  @ 22:40
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Tracking: 4 worktrees | Session: 15m
-```
+Deploys to GitHub Pages on every push to main:
+- Uses GitHub Pages artifact deployment
+- Serves `index.html` and `data/` directory
 
 ## Visual Indicators
 
-### Time Bars
+### Node Colors (Freshness)
 
-The bar grows as time since last activity increases:
+| Color | Time Since Last Update |
+|-------|----------------------|
+| Green | 0-15 minutes |
+| Yellow | 15-30 minutes |
+| Orange | 30-60 minutes |
+| Red | 60+ minutes |
 
-| Time | Bar | Color |
-|------|-----|-------|
-| 0-5 min | `█` to `██` | Green |
-| 5-15 min | `███` to `█████` | Yellow |
-| 15-30 min | `██████` to `████████` | Orange |
-| 30+ min | `██████████` | Red + `!` |
+### CI Status
 
-### Session Status Icons
+| Color | Status |
+|-------|--------|
+| Green | All checks passed |
+| Red | One or more checks failed |
+| Yellow | Checks in progress |
 
-Each worktree shows a status indicator based on its Claude session state:
+### Node Types
 
-| Icon | Status | Description |
-|------|--------|-------------|
-| `⠋⠙⠹⠸` | Working | Claude is actively processing (animated spinner) |
-| `○` | Idle | Session is waiting for user input |
-| `✗` | Error | Session encountered an error |
+- **Large sphere**: Repository center (default branch)
+- **Medium sphere**: PR with checks
+- **Small/transparent sphere**: Draft PR
+- **Lines**: PR hierarchy connections
 
-### CI/CD Status Icons
+## Controls
 
-PRs show their GitHub Actions status:
-
-| Icon | Status | Description |
-|------|--------|-------------|
-| `✓` | Pass | All checks passed (green) |
-| `✗` | Fail | One or more checks failed (red) |
-| `⠋⠙⠹⠸` | Pending | Checks are running (animated yellow spinner) |
-
-CI status is cached to avoid GitHub API rate limits:
-- Pending PRs: refreshed every 2 minutes
-- Pass/Fail PRs: refreshed every 5 minutes
-- Max 5 API calls per refresh cycle
-
-### Hierarchy Symbols
-
-- `●` - Repository name
-- `├` / `└` - Tree connectors
-- `#123` - PR number
-- PR titles shown instead of branch names when available
-- `(branch-name)` - Intermediate branch without worktree (dimmed)
-
-## How It Works
-
-1. **On startup**: Loads workspaces from Conductor's SQLite database, detects actual git branches, queries GitHub for open PRs
-2. **Branch detection**: Runs `git branch --show-current` in each worktree to detect the real branch (Conductor's database may be stale if you switched branches)
-3. **Every N seconds**: Polls database for `updated_at` changes to detect workspace switches
-4. **PR Hierarchy**: Uses GitHub PR base/head relationships to build parent-child tree
-5. **CI Status**: Queries `gh pr checks` for each PR with rate-limited caching
+| Control | Action |
+|---------|--------|
+| Drag | Rotate camera |
+| Shift+Drag | Pan camera |
+| Scroll | Zoom in/out |
+| Click node | Open PR on GitHub |
+| T | Toggle light/dark theme |
+| F | Fit all nodes to screen |
 
 ## Dependencies
 
 - Python 3.8+
-- `tqdm` (optional, for progress bars): `pip install tqdm`
-- `gh` CLI (for GitHub PR queries and CI status): `brew install gh`
+- `gh` CLI (GitHub CLI): `brew install gh` or `apt install gh`
+- Modern browser with WebGL support
 
-## Data Sources
+## Original Project
 
-- **Conductor DB**: `~/Library/Application Support/com.conductor.app/conductor.db`
-- **GitHub PRs**: via `gh pr list` CLI command
-- **CI Status**: via `gh pr checks` CLI command
-- **Git branches**: via `git branch --show-current` in each worktree
+This project was forked from the [Conductor Worktree Tracker](https://github.com/anthropics/conductor), which provides real-time tracking for Conductor workspaces. The original terminal-based tracker (`tracker.py`) and 3D server version (`tracker_server.py`, `tracker3d.html`) are still included for Conductor users.
+
+## License
+
+MIT License
