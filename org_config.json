@@ -1,0 +1,15 @@
+{
+  "organization": "BreadchainCoop",
+  "stale_minutes": 60,
+  "max_repos": 50,
+  "fetch_prs": true,
+  "fetch_ci": true,
+  "ci_cache_pending_seconds": 300,
+  "ci_cache_stable_seconds": 900,
+  "refresh_interval_minutes": 15,
+  "repo_filters": {
+    "exclude": [],
+    "include_archived": false,
+    "min_pushed_days_ago": 365
+  }
+}
