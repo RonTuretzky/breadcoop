@@ -109,6 +109,8 @@ class PRInfo:
     base_branch: str
     title: str = ""
     ci_status: str = ""
+    author_login: str = ""
+    author_avatar_url: str = ""
 
 
 @dataclass
@@ -127,6 +129,7 @@ class CommitInfo:
     author: str
     date: str
     github_url: str = ""
+    author_avatar_url: str = ""
 
 
 @dataclass
@@ -136,6 +139,8 @@ class TreeNode:
     workspace_id: Optional[str] = None
     pr_number: Optional[int] = None
     pr_title: Optional[str] = None
+    pr_author_login: Optional[str] = None
+    pr_author_avatar_url: Optional[str] = None
     click_record: Optional[dict] = None
     session_status: Optional[dict] = None
     ci_status: str = ""
@@ -154,45 +159,47 @@ def get_workspaces() -> list[Workspace]:
         return []
 
     conn = sqlite3.connect(f"file:{CONDUCTOR_DB}?mode=ro", uri=True)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    try:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT
-            w.id,
-            w.directory_name,
-            w.branch,
-            w.parent_branch,
-            w.repository_id,
-            w.updated_at,
-            r.name as repo_name,
-            r.remote_url,
-            r.default_branch,
-            r.root_path
-        FROM workspaces w
-        JOIN repos r ON w.repository_id = r.id
-        WHERE w.state = 'ready'
-        ORDER BY w.updated_at DESC
-    """)
+        cursor.execute("""
+            SELECT
+                w.id,
+                w.directory_name,
+                w.branch,
+                w.initialization_parent_branch as parent_branch,
+                w.repository_id,
+                w.updated_at,
+                r.name as repo_name,
+                r.remote_url,
+                r.default_branch,
+                r.root_path
+            FROM workspaces w
+            JOIN repos r ON w.repository_id = r.id
+            WHERE w.state = 'ready'
+            ORDER BY w.updated_at DESC
+        """)
 
-    workspaces = []
-    for row in cursor.fetchall():
-        updated_at = datetime.fromisoformat(row["updated_at"].replace("Z", ""))
-        workspaces.append(Workspace(
-            id=row["id"],
-            name=row["directory_name"],
-            branch=row["branch"],
-            parent_branch=row["parent_branch"],
-            repo_id=row["repository_id"],
-            repo_name=row["repo_name"],
-            remote_url=row["remote_url"] or "",
-            default_branch=row["default_branch"] or "main",
-            updated_at=updated_at,
-            root_path=row["root_path"] or "",
-        ))
+        workspaces = []
+        for row in cursor.fetchall():
+            updated_at = datetime.fromisoformat(row["updated_at"].replace("Z", ""))
+            workspaces.append(Workspace(
+                id=row["id"],
+                name=row["directory_name"],
+                branch=row["branch"],
+                parent_branch=row["parent_branch"],
+                repo_id=row["repository_id"],
+                repo_name=row["repo_name"],
+                remote_url=row["remote_url"] or "",
+                default_branch=row["default_branch"] or "main",
+                updated_at=updated_at,
+                root_path=row["root_path"] or "",
+            ))
 
-    conn.close()
-    return workspaces
+        return workspaces
+    finally:
+        conn.close()
 
 
 def get_actual_git_branch(ws: Workspace) -> str:
@@ -200,9 +207,13 @@ def get_actual_git_branch(ws: Workspace) -> str:
     if not ws.root_path:
         return ws.branch
 
-    worktree_path = Path(ws.root_path) / ".conductor" / ws.name
+    # Conductor stores workspaces in ~/conductor/workspaces/<repo>/<name>
+    worktree_path = Path.home() / "conductor" / "workspaces" / ws.repo_name / ws.name
     if not worktree_path.exists():
-        return ws.branch
+        # Fallback to legacy path
+        worktree_path = Path(ws.root_path) / ".conductor" / ws.name
+        if not worktree_path.exists():
+            return ws.branch
 
     try:
         result = subprocess.run(
@@ -319,40 +330,103 @@ def get_commits_from_default_branch(
     )
 
 
+# Cache for commit author avatars: sha -> avatar_url
+_commit_avatar_cache: dict[str, str] = {}
+
+
+def fetch_commit_avatars(owner: str, repo: str, base_branch: str, head_branch: str, commits: list[dict]) -> None:
+    """Fetch avatar URLs for commits from GitHub compare API and update commits in-place."""
+    if not commits or not owner or not repo:
+        return
+
+    # Check if we already have avatars cached for these commits
+    uncached_commits = [c for c in commits if c["sha"] not in _commit_avatar_cache]
+    if not uncached_commits:
+        # All commits are cached, just apply cached values
+        for commit in commits:
+            commit["author_avatar_url"] = _commit_avatar_cache.get(commit["sha"], "")
+        return
+
+    try:
+        # Use GitHub compare API to get commit author info
+        result = subprocess.run(
+            [
+                "gh", "api",
+                f"repos/{owner}/{repo}/compare/{base_branch}...{head_branch}",
+                "--jq", ".commits | .[] | [.sha, .author.login, .author.avatar_url] | @tsv"
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if result.returncode == 0:
+            # Parse the TSV output
+            sha_to_avatar: dict[str, str] = {}
+            for line in result.stdout.strip().split('\n'):
+                if not line:
+                    continue
+                parts = line.split('\t')
+                if len(parts) >= 3:
+                    sha, _login, avatar_url = parts[0], parts[1], parts[2]
+                    sha_to_avatar[sha] = avatar_url
+                    _commit_avatar_cache[sha] = avatar_url
+
+            # Update commits with avatar URLs
+            for commit in commits:
+                if commit["sha"] in sha_to_avatar:
+                    commit["author_avatar_url"] = sha_to_avatar[commit["sha"]]
+                elif commit["sha"] in _commit_avatar_cache:
+                    commit["author_avatar_url"] = _commit_avatar_cache[commit["sha"]]
+                else:
+                    commit["author_avatar_url"] = ""
+        else:
+            # Failed to fetch, set empty avatars
+            for commit in commits:
+                commit["author_avatar_url"] = _commit_avatar_cache.get(commit["sha"], "")
+
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        # On error, use cached values or empty strings
+        for commit in commits:
+            commit["author_avatar_url"] = _commit_avatar_cache.get(commit["sha"], "")
+
+
 def get_session_statuses() -> dict[str, SessionStatus]:
     """Get current session status for all workspaces."""
     if not CONDUCTOR_DB.exists():
         return {}
 
     conn = sqlite3.connect(f"file:{CONDUCTOR_DB}?mode=ro", uri=True)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    try:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT
-            s.workspace_id,
-            s.status,
-            s.model,
-            s.is_compacting
-        FROM sessions s
-        WHERE s.workspace_id IS NOT NULL
-          AND s.is_hidden = 0
-        ORDER BY s.updated_at DESC
-    """)
+        cursor.execute("""
+            SELECT
+                s.workspace_id,
+                s.status,
+                s.model,
+                s.is_compacting
+            FROM sessions s
+            WHERE s.workspace_id IS NOT NULL
+              AND s.is_hidden = 0
+            ORDER BY s.updated_at DESC
+        """)
 
-    statuses: dict[str, SessionStatus] = {}
-    for row in cursor.fetchall():
-        ws_id = row["workspace_id"]
-        if ws_id not in statuses:
-            statuses[ws_id] = SessionStatus(
-                workspace_id=ws_id,
-                status=row["status"] or "idle",
-                model=row["model"],
-                is_compacting=bool(row["is_compacting"]),
-            )
+        statuses: dict[str, SessionStatus] = {}
+        for row in cursor.fetchall():
+            ws_id = row["workspace_id"]
+            if ws_id not in statuses:
+                statuses[ws_id] = SessionStatus(
+                    workspace_id=ws_id,
+                    status=row["status"] or "idle",
+                    model=row["model"],
+                    is_compacting=bool(row["is_compacting"]),
+                )
 
-    conn.close()
-    return statuses
+        return statuses
+    finally:
+        conn.close()
 
 
 def get_last_user_message_times() -> dict[str, datetime]:
@@ -361,27 +435,29 @@ def get_last_user_message_times() -> dict[str, datetime]:
         return {}
 
     conn = sqlite3.connect(f"file:{CONDUCTOR_DB}?mode=ro", uri=True)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
+    try:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT s.workspace_id, MAX(s.last_user_message_at) as last_user_message_at
-        FROM sessions s
-        WHERE s.workspace_id IS NOT NULL
-          AND s.is_hidden = 0
-          AND s.last_user_message_at IS NOT NULL
-        GROUP BY s.workspace_id
-    """)
+        cursor.execute("""
+            SELECT s.workspace_id, MAX(s.last_user_message_at) as last_user_message_at
+            FROM sessions s
+            WHERE s.workspace_id IS NOT NULL
+              AND s.is_hidden = 0
+              AND s.last_user_message_at IS NOT NULL
+            GROUP BY s.workspace_id
+        """)
 
-    result: dict[str, datetime] = {}
-    for row in cursor.fetchall():
-        ws_id = row["workspace_id"]
-        timestamp = row["last_user_message_at"]
-        if timestamp:
-            result[ws_id] = datetime.fromisoformat(timestamp.replace("Z", ""))
+        result: dict[str, datetime] = {}
+        for row in cursor.fetchall():
+            ws_id = row["workspace_id"]
+            timestamp = row["last_user_message_at"]
+            if timestamp:
+                result[ws_id] = datetime.fromisoformat(timestamp.replace("Z", ""))
 
-    conn.close()
-    return result
+        return result
+    finally:
+        conn.close()
 
 
 # ============================================================================
@@ -406,7 +482,7 @@ def get_open_prs(owner: str, repo: str) -> list[PRInfo]:
     try:
         result = subprocess.run(
             ["gh", "pr", "list", "--repo", f"{owner}/{repo}", "--state", "open",
-             "--json", "number,headRefName,baseRefName,title"],
+             "--json", "number,headRefName,baseRefName,title,author"],
             capture_output=True,
             text=True,
             timeout=10,
@@ -415,15 +491,21 @@ def get_open_prs(owner: str, repo: str) -> list[PRInfo]:
             return []
 
         prs = json.loads(result.stdout)
-        return [
-            PRInfo(
+        pr_list = []
+        for pr in prs:
+            author = pr.get("author", {})
+            author_login = author.get("login", "") if author else ""
+            # GitHub avatars can be accessed via https://github.com/{login}.png
+            author_avatar_url = f"https://github.com/{author_login}.png" if author_login else ""
+            pr_list.append(PRInfo(
                 number=pr["number"],
                 head_branch=pr["headRefName"],
                 base_branch=pr["baseRefName"],
                 title=pr.get("title", ""),
-            )
-            for pr in prs
-        ]
+                author_login=author_login,
+                author_avatar_url=author_avatar_url,
+            ))
+        return pr_list
     except (subprocess.TimeoutExpired, json.JSONDecodeError, FileNotFoundError):
         return []
 
@@ -547,9 +629,10 @@ def build_hierarchy(
         root_path = repo_workspaces[0].root_path
         prs = prs_by_repo.get(repo_name, [])
 
-        pr_lookup: dict[str, tuple[str, int, str, str]] = {}
+        # pr_lookup: head_branch -> (base_branch, number, title, ci_status, author_login, author_avatar_url)
+        pr_lookup: dict[str, tuple[str, int, str, str, str, str]] = {}
         for pr in prs:
-            pr_lookup[pr.head_branch] = (pr.base_branch, pr.number, pr.title, pr.ci_status)
+            pr_lookup[pr.head_branch] = (pr.base_branch, pr.number, pr.title, pr.ci_status, pr.author_login, pr.author_avatar_url)
 
         # Create root node with default branch info
         root = TreeNode(name=repo_name, branch=default_branch)
@@ -575,8 +658,8 @@ def build_hierarchy(
                         "name": click.name,
                         "repo_name": click.repo_name,
                         "branch": click.branch,
-                        "first_seen": click.first_seen.isoformat(),
-                        "last_seen": click.last_seen.isoformat(),
+                        "first_seen": click.first_seen.isoformat() + "Z",
+                        "last_seen": click.last_seen.isoformat() + "Z",
                     }
 
                 status_dict = None
@@ -594,6 +677,8 @@ def build_hierarchy(
                     workspace_id=ws.id,
                     pr_number=pr_info[1] if pr_info else None,
                     pr_title=pr_info[2] if pr_info else None,
+                    pr_author_login=pr_info[4] if pr_info else None,
+                    pr_author_avatar_url=pr_info[5] if pr_info else None,
                     click_record=click_dict,
                     session_status=status_dict,
                     ci_status=pr_info[3] if pr_info else "",
@@ -624,6 +709,8 @@ def build_hierarchy(
                 workspace_id=None,
                 pr_number=pr_info[1] if pr_info else None,
                 pr_title=pr_info[2] if pr_info else None,
+                pr_author_login=pr_info[4] if pr_info else None,
+                pr_author_avatar_url=pr_info[5] if pr_info else None,
                 click_record=None,
                 ci_status=pr_info[3] if pr_info else "",
             )
@@ -663,6 +750,11 @@ def build_hierarchy(
                     remote_url,
                     max_commits=15
                 )
+                # Fetch avatar URLs from GitHub
+                github_info = parse_github_remote(remote_url)
+                if github_info and commits:
+                    owner, repo = github_info
+                    fetch_commit_avatars(owner, repo, node.parent_branch_name, branch, commits)
                 node.commits_from_parent = commits
             elif fetch_commits and root_path and branch not in attached:
                 # Branch attached to root - get commits from default branch
@@ -673,6 +765,11 @@ def build_hierarchy(
                     remote_url,
                     max_commits=15
                 )
+                # Fetch avatar URLs from GitHub
+                github_info = parse_github_remote(remote_url)
+                if github_info and commits:
+                    owner, repo = github_info
+                    fetch_commit_avatars(owner, repo, default_branch, branch, commits)
                 node.commits_from_parent = commits
                 node.parent_branch_name = default_branch
 
@@ -702,6 +799,8 @@ def tree_node_to_dict(node: TreeNode, remote_url: str = "") -> dict:
         "workspace_id": node.workspace_id,
         "pr_number": node.pr_number,
         "pr_title": node.pr_title,
+        "pr_author_login": node.pr_author_login,
+        "pr_author_avatar_url": node.pr_author_avatar_url,
         "click_record": node.click_record,
         "session_status": node.session_status,
         "ci_status": node.ci_status,
@@ -913,7 +1012,7 @@ class TrackerState:
 class TrackerHandler(http.server.SimpleHTTPRequestHandler):
     """HTTP request handler for tracker API."""
 
-    tracker_state: TrackerState = None
+    tracker_state: Optional[TrackerState] = None
 
     def do_GET(self):
         parsed = urlparse(self.path)
