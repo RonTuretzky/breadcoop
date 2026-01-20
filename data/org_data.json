@@ -1,7 +1,7 @@
 {
   "organization": "BreadchainCoop",
-  "generated_at": "2026-01-19T00:14:43.844494+00:00",
-  "generation_time_seconds": 139.37,
+  "generated_at": "2026-01-20T00:13:16.028936+00:00",
+  "generation_time_seconds": 132.49,
   "stats": {
     "total_repos": 46,
     "repos_with_prs": 22,
@@ -18,7 +18,7 @@
       "pr_title": null,
       "pr_url": null,
       "pr_author": null,
-      "last_updated": "2026-01-16T22:42:15Z",
+      "last_updated": "2026-01-19T19:42:09Z",
       "ci_status": "",
       "github_url": "https://github.com/BreadchainCoop/gas-killer-router",
       "is_draft": false,
@@ -27,17 +27,17 @@
       "parent_branch_name": null,
       "children": [
         {
-          "name": "[DRAFT] Use analyzer evmsketch feature and remove anvil depe",
+          "name": "Use analyzer \"evmsketch\" feature and remove anvil dependency",
           "branch": "feat/remove-anvil",
           "repo_name": "gas-killer-router",
           "pr_number": 90,
-          "pr_title": "[DRAFT] Use analyzer evmsketch feature and remove anvil dependency",
+          "pr_title": "Use analyzer \"evmsketch\" feature and remove anvil dependency",
           "pr_url": "https://github.com/BreadchainCoop/gas-killer-router/pull/90",
           "pr_author": "bagelface",
-          "last_updated": "2026-01-16T22:42:16Z",
-          "ci_status": "fail",
+          "last_updated": "2026-01-19T19:57:06Z",
+          "ci_status": "pass",
           "github_url": "https://github.com/BreadchainCoop/gas-killer-router",
-          "is_draft": true,
+          "is_draft": false,
           "labels": [],
           "commits_from_parent": [
             {
@@ -79,6 +79,16 @@
               "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
               "date": "2026-01-16",
               "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/9b9dd72be8212de5509a5c7b12fe7cf7c0956323"
+            },
+            {
+              "sha": "b38aa5d84bb2f08be173fb6a349d135ad7bd22e0",
+              "short_sha": "b38aa5d",
+              "message": "fix: add multi-thread flavor to some tests",
+              "author": "bagelface",
+              "author_login": "bagelface",
+              "author_avatar_url": "https://avatars.githubusercontent.com/u/87501783?v=4",
+              "date": "2026-01-19",
+              "html_url": "https://github.com/BreadchainCoop/gas-killer-router/commit/b38aa5d84bb2f08be173fb6a349d135ad7bd22e0"
             }
           ],
           "parent_branch_name": "dev",
@@ -310,6 +320,86 @@
         }
       ]
     },
+    "shared-quartz": {
+      "name": "shared-quartz",
+      "branch": "main",
+      "repo_name": "shared-quartz",
+      "pr_number": null,
+      "pr_title": null,
+      "pr_url": null,
+      "pr_author": null,
+      "last_updated": "2026-01-19T19:06:23Z",
+      "ci_status": "",
+      "github_url": "https://github.com/BreadchainCoop/shared-quartz",
+      "is_draft": false,
+      "labels": [],
+      "commits_from_parent": [],
+      "parent_branch_name": null,
+      "children": [
+        {
+          "name": "chore(deps): bump the production-dependencies group across 1",
+          "branch": "dependabot/npm_and_yarn/production-dependencies-8b4fece8a6",
+          "repo_name": "shared-quartz",
+          "pr_number": 61,
+          "pr_title": "chore(deps): bump the production-dependencies group across 1 directory with 20 updates",
+          "pr_url": "https://github.com/BreadchainCoop/shared-quartz/pull/61",
+          "pr_author": "app/dependabot",
+          "last_updated": "2026-01-19T19:06:54Z",
+          "ci_status": "pass",
+          "github_url": "https://github.com/BreadchainCoop/shared-quartz",
+          "is_draft": false,
+          "labels": [
+            "dependencies",
+            "javascript"
+          ],
+          "commits_from_parent": [
+            {
+              "sha": "cae143bd18eb96cd9be397bd393d9b7b5377521c",
+              "short_sha": "cae143b",
+              "message": "chore(deps): bump the production-dependencies group across 1 directory with 20 u",
+              "author": "dependabot[bot]",
+              "author_login": "dependabot[bot]",
+              "author_avatar_url": "https://avatars.githubusercontent.com/in/29110?v=4",
+              "date": "2026-01-19",
+              "html_url": "https://github.com/BreadchainCoop/shared-quartz/commit/cae143bd18eb96cd9be397bd393d9b7b5377521c"
+            }
+          ],
+          "parent_branch_name": "main",
+          "children": []
+        },
+        {
+          "name": "chore(deps): bump the ci-dependencies group across 1 directo",
+          "branch": "dependabot/github_actions/ci-dependencies-5549906628",
+          "repo_name": "shared-quartz",
+          "pr_number": 59,
+          "pr_title": "chore(deps): bump the ci-dependencies group across 1 directory with 7 updates",
+          "pr_url": "https://github.com/BreadchainCoop/shared-quartz/pull/59",
+          "pr_author": "app/dependabot",
+          "last_updated": "2026-01-19T19:04:07Z",
+          "ci_status": "pass",
+          "github_url": "https://github.com/BreadchainCoop/shared-quartz",
+          "is_draft": false,
+          "labels": [
+            "dependencies",
+            "github_actions"
+          ],
+          "commits_from_parent": [
+            {
+              "sha": "99b855fd82a9a42d337223feadcbb2ac9dfb9017",
+              "short_sha": "99b855f",
+              "message": "chore(deps): bump the ci-dependencies group across 1 directory with 7 updates",
+              "author": "dependabot[bot]",
+              "author_login": "dependabot[bot]",
+              "author_avatar_url": "https://avatars.githubusercontent.com/in/29110?v=4",
+              "date": "2025-12-15",
+              "html_url": "https://github.com/BreadchainCoop/shared-quartz/commit/99b855fd82a9a42d337223feadcbb2ac9dfb9017"
+            }
+          ],
+          "parent_branch_name": "main",
+          "children": []
+        }
+      ]
+    },
     "gas-killer-analyzer": {
       "name": "gas-killer-analyzer",
       "branch": "main",
@@ -327,17 +417,17 @@
       "parent_branch_name": null,
       "children": [
         {
-          "name": "[DRAFT] Use \"sp1-contract-call\" for simulations by default",
+          "name": "Use \"sp1-contract-call\" for simulations by default",
           "branch": "sp1-cc-sims",
           "repo_name": "gas-killer-analyzer",
           "pr_number": 83,
-          "pr_title": "[DRAFT] Use \"sp1-contract-call\" for simulations by default",
+          "pr_title": "Use \"sp1-contract-call\" for simulations by default",
           "pr_url": "https://github.com/BreadchainCoop/gas-killer-analyzer/pull/83",
           "pr_author": "bagelface",
-          "last_updated": "2026-01-16T19:46:56Z",
+          "last_updated": "2026-01-19T19:57:10Z",
           "ci_status": "pass",
           "github_url": "https://github.com/BreadchainCoop/gas-killer-analyzer",
-          "is_draft": true,
+          "is_draft": false,
           "labels": [],
           "commits_from_parent": [
             {
@@ -1386,86 +1476,6 @@
               "author_avatar_url": "https://avatars.githubusercontent.com/u/24276454?v=4",
               "date": "2025-12-08",
               "html_url": "https://github.com/BreadchainCoop/app-stacks/commit/fedd1f6cfbf1e4c8a280b9c96f6ad9eec7b5ebae"
-            }
-          ],
-          "parent_branch_name": "main",
-          "children": []
-        }
-      ]
-    },
-    "shared-quartz": {
-      "name": "shared-quartz",
-      "branch": "main",
-      "repo_name": "shared-quartz",
-      "pr_number": null,
-      "pr_title": null,
-      "pr_url": null,
-      "pr_author": null,
-      "last_updated": "2026-01-12T21:22:15Z",
-      "ci_status": "",
-      "github_url": "https://github.com/BreadchainCoop/shared-quartz",
-      "is_draft": false,
-      "labels": [],
-      "commits_from_parent": [],
-      "parent_branch_name": null,
-      "children": [
-        {
-          "name": "chore(deps): bump the production-dependencies group across 1",
-          "branch": "dependabot/npm_and_yarn/production-dependencies-6512bc9d98",
-          "repo_name": "shared-quartz",
-          "pr_number": 60,
-          "pr_title": "chore(deps): bump the production-dependencies group across 1 directory with 19 updates",
-          "pr_url": "https://github.com/BreadchainCoop/shared-quartz/pull/60",
-          "pr_author": "app/dependabot",
-          "last_updated": "2026-01-12T21:22:49Z",
-          "ci_status": "pass",
-          "github_url": "https://github.com/BreadchainCoop/shared-quartz",
-          "is_draft": false,
-          "labels": [
-            "dependencies",
-            "javascript"
-          ],
-          "commits_from_parent": [
-            {
-              "sha": "28fa217daccf9afc6b49f5dbe9e617300efb9510",
-              "short_sha": "28fa217",
-              "message": "chore(deps): bump the production-dependencies group across 1 directory with 19 u",
-              "author": "dependabot[bot]",
-              "author_login": "dependabot[bot]",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/29110?v=4",
-              "date": "2026-01-12",
-              "html_url": "https://github.com/BreadchainCoop/shared-quartz/commit/28fa217daccf9afc6b49f5dbe9e617300efb9510"
-            }
-          ],
-          "parent_branch_name": "main",
-          "children": []
-        },
-        {
-          "name": "chore(deps): bump the ci-dependencies group across 1 directo",
-          "branch": "dependabot/github_actions/ci-dependencies-5549906628",
-          "repo_name": "shared-quartz",
-          "pr_number": 59,
-          "pr_title": "chore(deps): bump the ci-dependencies group across 1 directory with 7 updates",
-          "pr_url": "https://github.com/BreadchainCoop/shared-quartz/pull/59",
-          "pr_author": "app/dependabot",
-          "last_updated": "2026-01-12T21:20:09Z",
-          "ci_status": "pass",
-          "github_url": "https://github.com/BreadchainCoop/shared-quartz",
-          "is_draft": false,
-          "labels": [
-            "dependencies",
-            "github_actions"
-          ],
-          "commits_from_parent": [
-            {
-              "sha": "99b855fd82a9a42d337223feadcbb2ac9dfb9017",
-              "short_sha": "99b855f",
-              "message": "chore(deps): bump the ci-dependencies group across 1 directory with 7 updates",
-              "author": "dependabot[bot]",
-              "author_login": "dependabot[bot]",
-              "author_avatar_url": "https://avatars.githubusercontent.com/in/29110?v=4",
-              "date": "2025-12-15",
-              "html_url": "https://github.com/BreadchainCoop/shared-quartz/commit/99b855fd82a9a42d337223feadcbb2ac9dfb9017"
             }
           ],
           "parent_branch_name": "main",
