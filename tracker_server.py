@@ -7,6 +7,7 @@ Serves the tracker data including workspaces, PRs, session statuses, and hierarc
 """
 
 import argparse
+import hashlib
 import http.server
 import json
 import os
@@ -21,6 +22,236 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Optional
 from urllib.parse import parse_qs, urlparse
+
+try:
+    import anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+
+
+# ============================================================================
+# Ordering Suggestions Data Classes
+# ============================================================================
+
+@dataclass
+class OrderingSuggestion:
+    """A single ordering suggestion."""
+    name: str
+    description: str
+    ordering: list[str]  # List of branch/workspace names in order
+
+
+@dataclass
+class OrderingsResponse:
+    """Response containing multiple ordering suggestions."""
+    orderings: list[OrderingSuggestion]
+    summary: str
+
+
+# ============================================================================
+# Suggestion Cache
+# ============================================================================
+
+class SuggestionCache:
+    """Cache for ordering suggestions to reduce API calls."""
+
+    def __init__(self, ttl_seconds: int = 300):
+        self._cache: dict[str, tuple[OrderingsResponse, float]] = {}
+        self._ttl = ttl_seconds
+
+    def get(self, tree_hash: str) -> Optional[OrderingsResponse]:
+        """Get cached response if still valid."""
+        if tree_hash in self._cache:
+            response, timestamp = self._cache[tree_hash]
+            if time.time() - timestamp < self._ttl:
+                return response
+            del self._cache[tree_hash]
+        return None
+
+    def set(self, tree_hash: str, response: OrderingsResponse):
+        """Cache a response."""
+        self._cache[tree_hash] = (response, time.time())
+
+
+# ============================================================================
+# Claude Orderings Client
+# ============================================================================
+
+ORDERINGS_SYSTEM_PROMPT = """You are an expert at analyzing software development dependency graphs and suggesting optimal work orderings.
+
+Given a tree of workspaces/PRs with their dependencies, suggest different orderings for how to work on them.
+
+Rules:
+1. A workspace can only be worked on if all its parent dependencies are complete
+2. The default branch (root) is always "complete" - branches off it have no blockers
+3. Stacked PRs must be merged in order (child depends on parent)
+
+Output a JSON object with this exact structure:
+{
+  "orderings": [
+    {
+      "name": "Maximum Parallelism",
+      "description": "Start all independent branches together, then work down the dependency chain.",
+      "ordering": ["branch1, branch2, branch3", "child-of-branch1, child-of-branch2", "grandchild"]
+    },
+    {
+      "name": "Depth-First",
+      "description": "Complete each branch fully before starting another.",
+      "ordering": ["branch1", "child-of-branch1", "grandchild", "branch2", "child-of-branch2", "branch3"]
+    },
+    {
+      "name": "CI-Optimized",
+      "description": "Prioritize branches with passing CI first.",
+      "ordering": ["branch2 (CI: ✓)", "branch1 (CI: pending)", "child-of-branch1 (CI: ✗)"]
+    }
+  ],
+  "summary": "Your tree has 3 independent subtrees that can be parallelized."
+}
+
+Each ordering should list branches/workspaces in the suggested order. For parallel orderings, group concurrent items on the same line separated by commas.
+"""
+
+
+class ClaudeOrderingsClient:
+    """Client for getting ordering suggestions from Claude."""
+
+    def __init__(self, model: str = "claude-sonnet-4-20250514"):
+        self.client = anthropic.Anthropic()  # Uses ANTHROPIC_API_KEY env var
+        self.model = model
+        self.cache = SuggestionCache()
+
+    def _compute_tree_hash(self, trees: dict) -> str:
+        """Compute hash of tree structure for caching."""
+        tree_str = json.dumps(trees, sort_keys=True)
+        return hashlib.sha256(tree_str.encode()).hexdigest()[:16]
+
+    def _extract_workspace_graph(self, trees: dict) -> dict:
+        """Extract simplified graph for Claude analysis."""
+        graph = {"repos": []}
+
+        for repo_name, tree in trees.items():
+            repo_data = {
+                "name": repo_name,
+                "default_branch": tree.get("branch", "main"),
+                "workspaces": []
+            }
+
+            def traverse(node, parent_branch=None):
+                if node.get("workspace_id") or node.get("branch"):
+                    workspace_info = {
+                        "name": node.get("name", node.get("branch", "unknown")),
+                        "branch": node.get("branch"),
+                        "parent_branch": parent_branch or node.get("parent_branch_name"),
+                        "pr_number": node.get("pr_number"),
+                        "ci_status": node.get("ci_status", "unknown")
+                    }
+                    if node.get("workspace_id"):
+                        workspace_info["id"] = node["workspace_id"]
+                    repo_data["workspaces"].append(workspace_info)
+
+                for child in node.get("children", []):
+                    traverse(child, node.get("branch"))
+
+            traverse(tree)
+            if repo_data["workspaces"]:
+                graph["repos"].append(repo_data)
+
+        return graph
+
+    def get_orderings(self, trees: dict) -> OrderingsResponse:
+        """Analyze tree and return ordering suggestions."""
+        # Check cache first
+        tree_hash = self._compute_tree_hash(trees)
+        cached = self.cache.get(tree_hash)
+        if cached:
+            return cached
+
+        # Extract simplified graph
+        graph = self._extract_workspace_graph(trees)
+
+        # Count total workspaces
+        total = sum(len(r["workspaces"]) for r in graph["repos"])
+        if total == 0:
+            return OrderingsResponse(orderings=[], summary="No workspaces found.")
+        if total == 1:
+            ws_name = graph["repos"][0]["workspaces"][0]["name"]
+            return OrderingsResponse(
+                orderings=[OrderingSuggestion(
+                    name="Single Workspace",
+                    description="Only one workspace to work on.",
+                    ordering=[ws_name]
+                )],
+                summary="Only one workspace - no parallelization needed."
+            )
+
+        # Build prompt
+        user_prompt = f"""Analyze this workspace dependency graph and suggest orderings:
+
+```json
+{json.dumps(graph, indent=2)}
+```
+
+Provide 3 different ordering strategies. For each, list the branches/workspaces in the order they should be worked on."""
+
+        # Call Claude
+        message = self.client.messages.create(
+            model=self.model,
+            max_tokens=2048,
+            system=ORDERINGS_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_prompt}]
+        )
+
+        # Parse response
+        response_text = message.content[0].text
+
+        # Extract JSON from response
+        if "```json" in response_text:
+            json_start = response_text.index("```json") + 7
+            json_end = response_text.index("```", json_start)
+            response_text = response_text[json_start:json_end]
+        elif "```" in response_text:
+            json_start = response_text.index("```") + 3
+            json_end = response_text.index("```", json_start)
+            response_text = response_text[json_start:json_end]
+
+        data = json.loads(response_text.strip())
+
+        # Convert to dataclasses
+        orderings = []
+        for o in data.get("orderings", []):
+            orderings.append(OrderingSuggestion(
+                name=o["name"],
+                description=o["description"],
+                ordering=o["ordering"]
+            ))
+
+        response = OrderingsResponse(
+            orderings=orderings,
+            summary=data.get("summary", "")
+        )
+
+        # Cache result
+        self.cache.set(tree_hash, response)
+
+        return response
+
+
+# Global Claude client (lazy initialized)
+_claude_orderings_client: Optional[ClaudeOrderingsClient] = None
+
+
+def get_claude_orderings_client() -> ClaudeOrderingsClient:
+    """Get or create Claude orderings client."""
+    global _claude_orderings_client
+    if _claude_orderings_client is None:
+        if not ANTHROPIC_AVAILABLE:
+            raise ValueError("anthropic package not installed. Run: pip install anthropic")
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ValueError("ANTHROPIC_API_KEY environment variable not set")
+        _claude_orderings_client = ClaudeOrderingsClient()
+    return _claude_orderings_client
 
 
 # ============================================================================
@@ -1014,6 +1245,63 @@ class TrackerHandler(http.server.SimpleHTTPRequestHandler):
 
     tracker_state: Optional[TrackerState] = None
 
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests."""
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
+    def do_POST(self):
+        """Handle POST requests."""
+        parsed = urlparse(self.path)
+
+        if parsed.path == "/api/suggest-orderings":
+            self.handle_suggest_orderings()
+        else:
+            self.send_error(404)
+
+    def handle_suggest_orderings(self):
+        """Handle ordering suggestion request."""
+        try:
+            # Read request body
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            request_data = json.loads(body) if body else {}
+
+            # Get current tree data if not provided
+            trees = request_data.get("trees")
+            if not trees:
+                api_data = self.tracker_state.get_api_data()
+                trees = api_data.get("trees", {})
+
+            # Get suggestions from Claude
+            client = get_claude_orderings_client()
+            response = client.get_orderings(trees)
+
+            # Convert to dict for JSON serialization
+            self.send_json({
+                "orderings": [asdict(o) for o in response.orderings],
+                "summary": response.summary
+            })
+
+        except ValueError as e:
+            self.send_json({
+                "error": "configuration_error",
+                "message": str(e)
+            }, status=500)
+        except json.JSONDecodeError:
+            self.send_json({
+                "error": "invalid_json",
+                "message": "Invalid JSON in request body"
+            }, status=400)
+        except Exception as e:
+            self.send_json({
+                "error": "internal_error",
+                "message": str(e)
+            }, status=500)
+
     def do_GET(self):
         parsed = urlparse(self.path)
         query_params = parse_qs(parsed.query)
@@ -1028,13 +1316,15 @@ class TrackerHandler(http.server.SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
-    def send_json(self, data: dict):
+    def send_json(self, data: dict, status: int = 200):
         """Send JSON response with CORS headers."""
         content = json.dumps(data).encode("utf-8")
-        self.send_response(200)
+        self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", len(content))
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.send_header("Cache-Control", "no-cache")
         self.end_headers()
         self.wfile.write(content)
