@@ -704,6 +704,303 @@
             border-color: rgba(139, 92, 246, 0.4);
         }
 
+        /* Suggest Order button */
+        .suggest-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .suggest-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .suggest-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .suggest-button .icon {
+            font-size: 16px;
+        }
+
+        body.light-mode .suggest-button {
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Orderings Modal */
+        .orderings-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+        .orderings-content {
+            background: #1e1e2e;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: #cdd6f4;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .orderings-content {
+            background: #fff;
+            color: #333;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .orderings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.light-mode .orderings-header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .orderings-header h2 {
+            margin: 0;
+            color: #cba6f7;
+            font-size: 20px;
+        }
+
+        body.light-mode .orderings-header h2 {
+            color: #6366f1;
+        }
+
+        .orderings-close {
+            background: none;
+            border: none;
+            color: #6c7086;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+
+        .orderings-close:hover {
+            color: #cdd6f4;
+        }
+
+        body.light-mode .orderings-close:hover {
+            color: #333;
+        }
+
+        .orderings-loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .orderings-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #45475a;
+            border-top-color: #cba6f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        body.light-mode .orderings-spinner {
+            border-color: #e0e0e0;
+            border-top-color: #6366f1;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .orderings-error {
+            text-align: center;
+            padding: 40px;
+            color: #f38ba8;
+        }
+
+        body.light-mode .orderings-error {
+            color: #ef4444;
+        }
+
+        .orderings-error-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .orderings-retry {
+            margin-top: 16px;
+            padding: 10px 20px;
+            background: #45475a;
+            color: #cdd6f4;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .orderings-retry:hover {
+            background: #585b70;
+        }
+
+        body.light-mode .orderings-retry {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        body.light-mode .orderings-retry:hover {
+            background: #d0d0d0;
+        }
+
+        .orderings-summary {
+            background: #313244;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #a6adc8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        body.light-mode .orderings-summary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .ordering-card {
+            background: #313244;
+            border: 2px solid #45475a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+
+        body.light-mode .ordering-card {
+            background: #f9f9f9;
+            border-color: #e0e0e0;
+        }
+
+        .ordering-card h3 {
+            margin: 0 0 8px 0;
+            color: #cba6f7;
+            font-size: 16px;
+        }
+
+        body.light-mode .ordering-card h3 {
+            color: #6366f1;
+        }
+
+        .ordering-card .description {
+            color: #a6adc8;
+            font-size: 13px;
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        body.light-mode .ordering-card .description {
+            color: #888;
+        }
+
+        .ordering-steps {
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .ordering-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 12px;
+            background: rgba(139, 92, 246, 0.1);
+            border-left: 3px solid #8b5cf6;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        body.light-mode .ordering-step {
+            background: rgba(99, 102, 241, 0.08);
+            border-left-color: #6366f1;
+        }
+
+        .ordering-step-number {
+            background: #8b5cf6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        body.light-mode .ordering-step-number {
+            background: #6366f1;
+        }
+
+        .orderings-footer {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .orderings-close-btn {
+            padding: 12px 40px;
+            background: #45475a;
+            color: #cdd6f4;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .orderings-close-btn:hover {
+            background: #585b70;
+        }
+
+        body.light-mode .orderings-close-btn {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        body.light-mode .orderings-close-btn:hover {
+            background: #d0d0d0;
+        }
+
         /* Emoji legend for colorblind mode */
         #emoji-legend {
             display: none;
@@ -996,6 +1293,11 @@
         <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()">
             <span class="icon" id="theme-icon">&#9790;</span>
             <span id="theme-label">Light</span>
+        </button>
+
+        <button class="suggest-button" id="suggest-button" onclick="showOrderingsModal()">
+            <span class="icon">&#10024;</span>
+            <span>Suggest Order</span>
         </button>
 
         <div id="status-panel">
@@ -3308,6 +3610,146 @@
                 'ws-4': { status: 'working' }
             }
         };
+    }
+
+    // ============================================================================
+    // Orderings Modal
+    // ============================================================================
+    const orderingsState = {
+        isLoading: false,
+        error: null,
+        data: null
+    };
+
+    function showOrderingsModal() {
+        // Create modal if it doesn't exist
+        let modal = document.getElementById('orderings-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'orderings-modal';
+            modal.className = 'orderings-modal';
+            modal.innerHTML = `
+                <div class="orderings-content">
+                    <div class="orderings-header">
+                        <h2>Suggested Orderings</h2>
+                        <button class="orderings-close" onclick="closeOrderingsModal()">&times;</button>
+                    </div>
+                    <div id="orderings-body"></div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeOrderingsModal();
+            });
+        }
+
+        modal.style.display = 'flex';
+        fetchOrderings();
+    }
+
+    function closeOrderingsModal() {
+        const modal = document.getElementById('orderings-modal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function fetchOrderings() {
+        const body = document.getElementById('orderings-body');
+        if (!body) return;
+
+        // Show loading state
+        orderingsState.isLoading = true;
+        orderingsState.error = null;
+        body.innerHTML = `
+            <div class="orderings-loading">
+                <div class="orderings-spinner"></div>
+                <p>Analyzing with Claude...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch('/api/suggest-orderings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ trees: state.trackerData?.trees })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to get suggestions');
+            }
+
+            orderingsState.data = data;
+            orderingsState.error = null;
+            renderOrderings(data);
+
+        } catch (error) {
+            orderingsState.error = error.message;
+            body.innerHTML = `
+                <div class="orderings-error">
+                    <div class="orderings-error-icon">&#9888;</div>
+                    <p>${escapeHtml(error.message)}</p>
+                    <button class="orderings-retry" onclick="fetchOrderings()">Retry</button>
+                </div>
+            `;
+        } finally {
+            orderingsState.isLoading = false;
+        }
+    }
+
+    function renderOrderings(data) {
+        const body = document.getElementById('orderings-body');
+        if (!body) return;
+
+        if (!data.orderings || data.orderings.length === 0) {
+            body.innerHTML = `
+                <div class="orderings-summary">
+                    ${escapeHtml(data.summary || 'No ordering suggestions available.')}
+                </div>
+                <div class="orderings-footer">
+                    <button class="orderings-close-btn" onclick="closeOrderingsModal()">Close</button>
+                </div>
+            `;
+            return;
+        }
+
+        // Build orderings HTML
+        const orderingsHtml = data.orderings.map((ordering, idx) => {
+            const stepsHtml = ordering.ordering.map((step, stepIdx) => `
+                <li class="ordering-step">
+                    <span class="ordering-step-number">${stepIdx + 1}</span>
+                    <span>${escapeHtml(step)}</span>
+                </li>
+            `).join('');
+
+            return `
+                <div class="ordering-card">
+                    <h3>${escapeHtml(ordering.name)}</h3>
+                    <p class="description">${escapeHtml(ordering.description)}</p>
+                    <ol class="ordering-steps">
+                        ${stepsHtml}
+                    </ol>
+                </div>
+            `;
+        }).join('');
+
+        body.innerHTML = `
+            ${data.summary ? `<div class="orderings-summary">${escapeHtml(data.summary)}</div>` : ''}
+            ${orderingsHtml}
+            <div class="orderings-footer">
+                <button class="orderings-close-btn" onclick="closeOrderingsModal()">Close</button>
+            </div>
+        `;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     // ============================================================================
