@@ -28,6 +28,20 @@
             display: block;
         }
 
+        /* Poincaré disk mode renders on its own 2D canvas overlay */
+        #disk-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;          /* shown only while in disk mode */
+            pointer-events: none;   /* enabled only while in disk mode */
+            z-index: 50;            /* above WebGL canvas, below toolbar (z-index 100) */
+            cursor: grab;
+        }
+        #disk-canvas.grabbing { cursor: grabbing; }
+
         #header {
             position: absolute;
             top: 20px;
@@ -781,10 +795,43 @@
         }
 
         /* Zen mode button */
+        /* H3 (3D hyperbolic) + Disk (2D Poincaré) layout-mode buttons */
+        .h3-button, .disk-button {
+            position: absolute;
+            top: 20px;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            color: #e0e0e0;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .h3-button   { right: 735px; }
+        .disk-button { right: 810px; }
+        .h3-button:hover, .disk-button:hover { background: rgba(30, 30, 40, 0.9); }
+        .h3-button.active   { background: rgba(34, 211, 238, 0.3); border-color: rgba(34, 211, 238, 0.5); }
+        .disk-button.active { background: rgba(245, 158, 11, 0.3); border-color: rgba(245, 158, 11, 0.5); }
+        .h3-button .icon, .disk-button .icon { font-size: 14px; }
+        body.light-mode .h3-button, body.light-mode .disk-button {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+        body.light-mode .h3-button:hover, body.light-mode .disk-button:hover { background: rgba(240, 240, 245, 0.95); }
+        body.light-mode .h3-button.active   { background: rgba(34, 211, 238, 0.2); border-color: rgba(34, 211, 238, 0.4); }
+        body.light-mode .disk-button.active { background: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.4); }
+
         .zen-button {
             position: absolute;
             top: 20px;
-            right: 660px;
+            right: 885px;
             z-index: 101;
             background: rgba(10, 10, 15, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -827,7 +874,7 @@
         #header, #status-panel, #legend-panel, #emoji-legend, #footer,
         .controls-hint, .spacing-controls,
         .theme-toggle, .fit-button, .lock-button, .ci-button,
-        .colorblind-button, .fullscreen-button {
+        .colorblind-button, .fullscreen-button, .h3-button, .disk-button {
             transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
@@ -843,7 +890,9 @@
         body.zen-mode .lock-button,
         body.zen-mode .ci-button,
         body.zen-mode .colorblind-button,
-        body.zen-mode .fullscreen-button {
+        body.zen-mode .fullscreen-button,
+        body.zen-mode .h3-button,
+        body.zen-mode .disk-button {
             opacity: 0;
             pointer-events: none;
             transform: translateY(-10px);
@@ -1334,6 +1383,7 @@
 <body>
     <div id="container">
         <canvas id="canvas"></canvas>
+        <canvas id="disk-canvas"></canvas>
 
         <div id="header">
             <h1>CONDUCTOR WORKTREE TRACKER</h1>
@@ -1343,6 +1393,16 @@
         <button class="garden-button" id="garden-button" onclick="toggleGardenMode()">
             <span class="icon" id="garden-icon">🌳</span>
             <span id="garden-label">Garden</span>
+        </button>
+
+        <button class="h3-button" id="h3-button" onclick="toggleH3()" title="H3 — 3D hyperbolic (Poincaré ball), after Munzner 1997">
+            <span class="icon" id="h3-icon">✺</span>
+            <span id="h3-label">H3</span>
+        </button>
+
+        <button class="disk-button" id="disk-button" onclick="toggleDisk()" title="Poincaré disk — 2D hyperbolic focus+context, after Lamping/Rao/Pirolli 1995">
+            <span class="icon" id="disk-icon">◯</span>
+            <span id="disk-label">Disk</span>
         </button>
 
         <button class="zen-button" id="zen-button" onclick="toggleZen()">
@@ -1673,6 +1733,13 @@
     // Theme state
     let isDarkMode = true;
     let isGardenMode = false;
+    // Two independent axes:
+    //   viewStyle  — visual treatment: 'regular' (spheres) | 'garden' (flora)
+    //   layoutGeom — spatial layout:   'standard' (Euclidean radial) | 'h3' (3D hyperbolic ball) | 'disk' (2D Poincaré)
+    // Any combination is valid (e.g. garden + h3, garden + disk).
+    let viewStyle = 'regular';
+    let layoutGeom = 'standard';
+    // isGardenMode mirrors viewStyle for back-compat with existing garden code paths.
 
     // Org viewer mode
     const urlParams = new URLSearchParams(window.location.search);
@@ -2079,7 +2146,7 @@
 
             // Rebuild scene to update all node colors
             clearScene();
-            buildScene();
+            rebuildActiveLayout();
         }
 
         // Save preference
@@ -2121,6 +2188,16 @@
         commitSpacing: 1.0,           // How spread out commits are along the line (0.3-1.0)
         locked: false,                // Whether scene updates are paused
         colorblind: false,            // Whether colorblind mode is enabled (emojis instead of colors)
+        // H3 (3D hyperbolic / Poincaré ball) tunables
+        h3Edge: 1.7,                  // hyperbolic length of each parent->child edge
+        h3RootEdge: 1.25,             // hyperbolic distance of repo roots from ball centre
+        h3MaxCap: 1.3,               // max cone half-angle (radians) for child spreading
+        h3BallR: 7.0,                 // world-space radius the unit ball is scaled to
+        h3NodeR: 0.5,                 // base node sphere radius at the ball centre
+        // Disk (2D Poincaré) tunables (Euclidean step radii = tanh(hyp_dist/2))
+        diskRootStep: 0.52,           // disk radius of the first ring (repo roots)
+        diskStep: 0.62,               // disk radius of each subsequent generation step
+        diskMaxHalf: 2.75,            // cap on a node's child half-wedge (radians)
     };
 
     // ============================================================================
@@ -2137,6 +2214,18 @@
     let previousMousePosition = { x: 0, y: 0 };
     let spinnerRotation = 0;
     let dragStartTime = 0;  // Track drag duration for click detection
+
+    // ---- Disk (2D Poincaré) mode globals ----
+    let diskCtx = null;             // 2D rendering context (null unless in disk mode)
+    let diskRAF = null;             // rAF handle for the disk draw loop
+    let diskNeedsRedraw = true;     // draw-on-demand flag
+    let diskNodes = [];             // [{ node, githubUrl, hx, hy, color, depth, parent }] canonical coords
+    let diskView = suIdentity();    // current view Möbius transform (SU(1,1))
+    let diskScale = 1;              // Euclidean zoom of the whole disk
+    let diskHover = null;           // currently hovered disk node
+    let diskDragging = false;
+    let diskPrev = null;            // previous cursor pos in disk coords during a drag
+    const diskHandlers = {};        // bound listeners, kept so we can detach on exit
 
     function getThemeColors() {
         return isDarkMode ? CONFIG.scene.dark : CONFIG.scene.light;
@@ -2202,7 +2291,7 @@
             label.textContent = 'Lock';
             // Rebuild scene with latest data when unlocking
             if (state.trackerData) {
-                buildScene();
+                rebuildActiveLayout();
                 updateStatusPanel();
                 updateFooter();
             }
@@ -2265,51 +2354,119 @@
 
         // Rebuild scene to update ball colors and add/remove emoji indicators
         clearScene();
-        buildScene();
+        rebuildActiveLayout();
 
         // Save preference
         localStorage.setItem('conductor-tracker-colorblind', state.colorblind ? 'true' : 'false');
     }
 
+    // ============================================================================
+    // View system — two independent axes: viewStyle × layoutGeom
+    // ============================================================================
+
+    // STYLE axis: the 🌳 button toggles Garden ⇄ Regular without changing layout.
     function toggleGardenMode() {
-        isGardenMode = !isGardenMode;
-        const btn = document.getElementById('garden-button');
-        btn.classList.toggle('active', isGardenMode);
-        document.getElementById('garden-icon').textContent = isGardenMode ? '🏙️' : '🌳';
-        document.getElementById('garden-label').textContent = isGardenMode ? 'Standard' : 'Garden';
-
-        // Update subtitle
-        if (isOrgMode) {
-            document.querySelector('#header .subtitle').textContent = isGardenMode
-                ? '3D Garden View'
-                : 'GitHub Org Viewer';
+        viewStyle = (viewStyle === 'garden') ? 'regular' : 'garden';
+        isGardenMode = (viewStyle === 'garden');
+        updateLayoutButtons();
+        updateSubtitleForLayout();
+        // Garden sky/ground only makes sense for the 3D layouts (standard/h3).
+        if (layoutGeom !== 'disk') updateGardenBackground();
+        if (layoutGeom === 'disk') {
+            diskNeedsRedraw = true;             // disk re-skins itself (botanical vs plain)
         } else {
-            document.querySelector('#header .subtitle').textContent = isGardenMode
-                ? '3D Garden View'
-                : '3D Visualization';
+            clearScene();
+            buildScene();
         }
-
-        // Apply garden background (sky, ground, clouds)
-        updateGardenBackground();
-
-        // Rebuild scene
-        clearScene();
-        buildScene();
-
-        // Save preference
-        localStorage.setItem('conductor-tracker-garden', isGardenMode ? 'true' : 'false');
+        persistView();
     }
 
-    function loadSavedGardenMode() {
-        const saved = localStorage.getItem('conductor-tracker-garden');
-        if (saved === 'true') {
-            isGardenMode = true;
-            const btn = document.getElementById('garden-button');
-            btn.classList.add('active');
-            document.getElementById('garden-icon').textContent = '🏙️';
-            document.getElementById('garden-label').textContent = 'Standard';
-            document.querySelector('#header .subtitle').textContent = '3D Garden View';
+    // LAYOUT axis: H3 / Disk buttons toggle the geometry; clicking the active one returns to standard.
+    function setLayoutGeom(geom) {
+        if (geom === layoutGeom) geom = 'standard';   // toggle off
+        const prev = layoutGeom;
+        layoutGeom = geom;
+
+        if (prev === 'disk' && geom !== 'disk') exitDiskMode();
+
+        updateLayoutButtons();
+        updateSubtitleForLayout();
+        resetCameraForLayout(geom);
+        if (geom !== 'disk') updateGardenBackground();
+
+        if (geom === 'disk') {
+            clearScene();
+            if (prev !== 'disk') enterDiskMode(); else diskNeedsRedraw = true;
+        } else {
+            clearScene();
+            buildScene();
         }
+        persistView();
+    }
+
+    function toggleH3()   { setLayoutGeom('h3'); }
+    function toggleDisk() { setLayoutGeom('disk'); }
+
+    function persistView() {
+        localStorage.setItem('conductor-tracker-style', viewStyle);
+        localStorage.setItem('conductor-tracker-geom', layoutGeom);
+    }
+
+    function updateLayoutButtons() {
+        const g = document.getElementById('garden-button');
+        const h = document.getElementById('h3-button');
+        const d = document.getElementById('disk-button');
+        if (g) g.classList.toggle('active', viewStyle === 'garden');
+        if (h) h.classList.toggle('active', layoutGeom === 'h3');
+        if (d) d.classList.toggle('active', layoutGeom === 'disk');
+        const gi = document.getElementById('garden-icon');
+        const gl = document.getElementById('garden-label');
+        if (gi) gi.textContent = (viewStyle === 'garden') ? '🏙️' : '🌳';
+        if (gl) gl.textContent = (viewStyle === 'garden') ? 'Regular' : 'Garden';
+    }
+
+    function updateSubtitleForLayout() {
+        const el = document.querySelector('#header .subtitle');
+        if (!el) return;
+        const suffix = state.locked ? ' (Locked)' : '';
+        const stylePart = (viewStyle === 'garden') ? 'Garden' : null;
+        let geomPart;
+        if (layoutGeom === 'h3')        geomPart = 'H3 · 3D Hyperbolic';
+        else if (layoutGeom === 'disk') geomPart = 'Poincaré Disk';
+        else geomPart = null;
+        let text;
+        if (stylePart && geomPart)      text = stylePart + ' · ' + geomPart;
+        else if (geomPart)              text = geomPart;
+        else if (stylePart)             text = '3D Garden View';
+        else text = isOrgMode ? 'GitHub Org Viewer' : '3D Visualization';
+        el.textContent = text + suffix;
+    }
+
+    function resetCameraForLayout(geom) {
+        cameraTargetX = 0; cameraTargetZ = 0; cameraAngle = 0;
+        if (geom === 'h3') {
+            cameraRadius = 22; cameraHeight = 12;   // pull back + lift for a 3/4 view of the ball
+        } else if (geom === 'standard') {
+            cameraRadius = 15; cameraHeight = 8;    // existing defaults
+        }
+        if (geom !== 'disk' && typeof updateCameraPosition === 'function') updateCameraPosition();
+    }
+
+    function loadSavedLayoutMode() {
+        let style = localStorage.getItem('conductor-tracker-style');
+        let geom  = localStorage.getItem('conductor-tracker-geom');
+        if (!style && !geom) {
+            // migrate the legacy single-axis key / garden flag
+            const legacy = localStorage.getItem('conductor-tracker-layout');
+            if (legacy === 'garden') { style = 'garden'; geom = 'standard'; }
+            else if (legacy === 'h3' || legacy === 'disk') { style = 'regular'; geom = legacy; }
+            else if (localStorage.getItem('conductor-tracker-garden') === 'true') { style = 'garden'; geom = 'standard'; }
+        }
+        if (style === 'garden' || style === 'regular') viewStyle = style;
+        if (['standard', 'h3', 'disk'].includes(geom)) layoutGeom = geom;
+        isGardenMode = (viewStyle === 'garden');
+        updateLayoutButtons();
+        updateSubtitleForLayout();
     }
 
     function toggleZen() {
@@ -2616,6 +2773,23 @@
         isPanning = false;
     }
 
+    // Open the GitHub URL for a node, mirroring the precedence used everywhere.
+    // Returns true if it opened something.
+    function openNodeUrl(data) {
+        if (!data) return false;
+        if (data.pr_number && data.github_url) {
+            window.open(`${data.github_url}/pull/${data.pr_number}`, '_blank');
+            return true;
+        } else if (data.pr_url) {
+            window.open(data.pr_url, '_blank');
+            return true;
+        } else if (data.github_url && data.branch) {
+            window.open(`${data.github_url}/tree/${data.branch}`, '_blank');
+            return true;
+        }
+        return false;
+    }
+
     function onClick(event) {
         // Don't handle clicks if we were dragging for more than 200ms
         const dragDuration = Date.now() - dragStartTime;
@@ -2655,20 +2829,7 @@
                 targetMesh = targetMesh.parent;
             }
             if (targetMesh && targetMesh.userData.type === 'workspace') {
-                const data = targetMesh.userData.data;
-                if (data.pr_number && data.github_url) {
-                    // Open PR page
-                    window.open(`${data.github_url}/pull/${data.pr_number}`, '_blank');
-                    return;
-                } else if (data.pr_url) {
-                    // Org mode: use pr_url directly
-                    window.open(data.pr_url, '_blank');
-                    return;
-                } else if (data.github_url && data.branch) {
-                    // Open branch page
-                    window.open(`${data.github_url}/tree/${data.branch}`, '_blank');
-                    return;
-                }
+                if (openNodeUrl(targetMesh.userData.data)) return;
             }
         }
 
@@ -2731,6 +2892,12 @@
         } else if (event.key === 'g' || event.key === 'G') {
             // Toggle garden mode with 'g' key (only for PRs view)
             if (!isOrgMode || viewMode === 'prs') toggleGardenMode();
+        } else if (event.key === 'h' || event.key === 'H') {
+            // Toggle H3 (3D hyperbolic) mode
+            if (!isOrgMode || viewMode === 'prs') toggleH3();
+        } else if (event.key === 'd' || event.key === 'D') {
+            // Toggle Poincaré disk (2D hyperbolic) mode
+            if (!isOrgMode || viewMode === 'prs') toggleDisk();
         } else if ((event.key === 'v' || event.key === 'V') && isOrgMode) {
             // Toggle view mode with 'v' key (org mode only)
             toggleView();
@@ -2816,11 +2983,11 @@
         const { trees } = state.trackerData;
         if (!trees || Object.keys(trees).length === 0) return;
 
-        // Dispatch to garden mode if enabled
-        if (isGardenMode) {
-            buildGardenScene();
-            return;
-        }
+        // Dispatch by the two axes. Disk renders on its own 2D canvas (handled elsewhere);
+        // H3 + standard each honour viewStyle (garden vs regular) internally / below.
+        if (layoutGeom === 'disk') { return; }
+        if (layoutGeom === 'h3')   { buildH3Scene(); return; }
+        if (viewStyle === 'garden') { buildGardenScene(); return; }   // garden + standard
 
         const repoNames = Object.keys(trees).filter(name => !state.hiddenRepos.has(name));
         const numRepos = repoNames.length;
@@ -3103,6 +3270,289 @@
         }
 
         return commitGroup;
+    }
+
+    // ============================================================================
+    // H3 — 3D hyperbolic layout in the Poincaré ball  (after Munzner, InfoVis 1997)
+    //
+    // The whole repo forest is embedded in the open unit ball B³ (curvature -1).
+    // A child sits at a fixed hyperbolic distance from its parent; because the
+    // VOLUME of hyperbolic space grows exponentially with radius, every subtree
+    // gets its own non-overlapping cone of room no matter how deep the stack.
+    // Display uses the conformal Poincaré projection: nodes shrink toward the
+    // boundary (scale = 1 - |p|²), giving natural focus+context.
+    // ============================================================================
+    const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+
+    // Möbius (gyro) addition in the Poincaré ball: translates the ball so the
+    // origin maps to u, then evaluates at v.  u ⊕ 0 = u, 0 ⊕ v = v, it is an isometry.
+    function mobAdd(u, v) {
+        const uv = u.x * v.x + u.y * v.y + u.z * v.z;
+        const u2 = u.lengthSq(), v2 = v.lengthSq();
+        let denom = 1 + 2 * uv + u2 * v2;
+        if (Math.abs(denom) < 1e-12) denom = 1e-12;
+        const ca = 1 + 2 * uv + v2;     // coefficient on u
+        const cb = 1 - u2;              // coefficient on v
+        const inv = 1 / denom;
+        return new THREE.Vector3(
+            (ca * u.x + cb * v.x) * inv,
+            (ca * u.y + cb * v.y) * inv,
+            (ca * u.z + cb * v.z) * inv
+        );
+    }
+
+    // Two unit vectors orthogonal to `a` (which must be unit length).
+    function orthoBasis(a) {
+        const helper = Math.abs(a.y) < 0.99 ? new THREE.Vector3(0, 1, 0)
+                                            : new THREE.Vector3(1, 0, 0);
+        const e1 = new THREE.Vector3().crossVectors(helper, a).normalize();
+        const e2 = new THREE.Vector3().crossVectors(a, e1).normalize();
+        return [e1, e2];
+    }
+
+    // Evenly spread point i of n over the whole unit sphere (Fibonacci sphere).
+    function fibSphereDir(i, n) {
+        const z = 1 - 2 * (i + 0.5) / n;
+        const r = Math.sqrt(Math.max(0, 1 - z * z));
+        const phi = i * GOLDEN_ANGLE;
+        return new THREE.Vector3(r * Math.cos(phi), z, r * Math.sin(phi));
+    }
+
+    // Spread point i of k over a spherical cap of half-angle `capHalf` around `axis`,
+    // using equal-area cell centres (no clustering on the axis or the rim).
+    function fibCapDir(axis, i, k, capHalf) {
+        const basis = orthoBasis(axis);
+        const cosCap = Math.cos(capHalf);
+        const t = (k <= 1) ? 0 : (i + 0.5) / k;
+        const cz = 1 - t * (1 - cosCap);                 // cos(phi), equal area
+        const phi = Math.acos(Math.min(1, Math.max(-1, cz)));
+        const psi = i * GOLDEN_ANGLE;
+        const sinp = Math.sin(phi), cosp = Math.cos(phi);
+        return new THREE.Vector3()
+            .addScaledVector(axis, cosp)
+            .addScaledVector(basis[0], sinp * Math.cos(psi))
+            .addScaledVector(basis[1], sinp * Math.sin(psi));
+    }
+
+    // Forward half-angle a child may reuse: a parent slice of half-angle `beta`,
+    // after stepping out by Euclidean disk radius d = tanh(step/2), subtends this
+    // (larger) angle at the child — the geometric source of the exponential room.
+    //   β' = arg( (e^{iβ} - d) / (1 - d·e^{iβ}) )
+    function hyperIdealHalfAngle(beta, d) {
+        const c = Math.cos(beta), s = Math.sin(beta);
+        const nx = c - d, ny = s;
+        const dx = 1 - d * c, dy = -d * s;
+        const den = (dx * dx + dy * dy) || 1e-12;
+        const rx = (nx * dx + ny * dy) / den;
+        const ry = (ny * dx - nx * dy) / den;
+        return Math.atan2(ry, rx);
+    }
+
+    function clampBall(v, eps) {
+        eps = eps || 1e-4;
+        const len = v.length();
+        if (len > 1 - eps) v.multiplyScalar((1 - eps) / len);
+        return v;
+    }
+
+    function createH3Node(node, githubUrl) {
+        const statusScore = getNodeStatusScore(node);
+        const color = state.colorblind ? getColorblindGray(statusScore) : statusScoreToColor(statusScore);
+        const geometry = new THREE.SphereGeometry(state.h3NodeR, 16, 16);
+        const material = new THREE.MeshStandardMaterial({
+            color, emissive: color,
+            emissiveIntensity: state.colorblind ? 0.3 : 0.5,
+            metalness: 0.1, roughness: 0.8,
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        // Fill (only if missing) so clicks can resolve a URL; never override existing.
+        if (!node.github_url && githubUrl) node.github_url = githubUrl;
+        mesh.userData = { type: 'workspace', data: node, statusScore };
+        return mesh;
+    }
+
+    // Garden-styled H3 node: foliage+bloom for repos/branch points, a flower for leaves.
+    // Same hover/click contract as createH3Node (userData.type + data).
+    function createH3GardenNode(node, isRepo, statusScore, githubUrl) {
+        const group = new THREE.Group();
+        const hasKids = node.children && node.children.length > 0;
+        const folCol = isRepo
+            ? (isDarkMode ? CONFIG.colors.garden.foliageDark : CONFIG.colors.garden.foliage)
+            : (statusScore < 0.33 ? CONFIG.colors.garden.foliage
+               : statusScore < 0.66 ? CONFIG.colors.garden.branchWarning
+               : CONFIG.colors.garden.branchDying);
+        const flowerCol = statusScore < 0.33 ? CONFIG.colors.garden.flowerPink
+            : statusScore < 0.66 ? CONFIG.colors.garden.flowerYellow
+            : CONFIG.colors.garden.flowerRed;
+
+        if (isRepo || hasKids) {
+            // Foliage cluster with a small crowning bloom.
+            const folMat = new THREE.MeshPhongMaterial({ color: folCol, emissive: folCol, emissiveIntensity: 0.18 });
+            const fol = new THREE.Mesh(new THREE.IcosahedronGeometry(isRepo ? 0.55 : 0.34, 1), folMat);
+            group.add(fol);
+            const blMat = new THREE.MeshPhongMaterial({ color: flowerCol, emissive: flowerCol, emissiveIntensity: 0.35 });
+            const bloom = new THREE.Mesh(GARDEN_GEOMETRIES.flower, blMat);
+            bloom.position.y = isRepo ? 0.6 : 0.42;
+            bloom.scale.setScalar(isRepo ? 0.9 : 0.7);
+            group.add(bloom);
+        } else {
+            // A 5-petal flower in bloom.
+            const center = new THREE.Mesh(
+                new THREE.SphereGeometry(0.14, 10, 10),
+                new THREE.MeshPhongMaterial({ color: 0xffe08a, emissive: 0xffe08a, emissiveIntensity: 0.4 })
+            );
+            group.add(center);
+            const petalMat = new THREE.MeshPhongMaterial({ color: flowerCol, emissive: flowerCol, emissiveIntensity: 0.3 });
+            for (let i = 0; i < 5; i++) {
+                const a = (i / 5) * Math.PI * 2;
+                const petal = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), petalMat);
+                petal.position.set(Math.cos(a) * 0.2, 0, Math.sin(a) * 0.2);
+                petal.scale.set(1, 0.45, 1.5);
+                group.add(petal);
+            }
+        }
+        if (!node.github_url && githubUrl) node.github_url = githubUrl;
+        group.userData = isRepo
+            ? { type: 'repo', name: node.name, branch: node.branch || 'main', github_url: githubUrl || node.github_url }
+            : { type: 'workspace', data: node, statusScore };
+        return group;
+    }
+
+    function buildH3Scene() {
+        const garden = (viewStyle === 'garden');
+        const { trees } = state.trackerData;
+        if (!trees) return;
+        const repoNames = Object.keys(trees).filter(n => !state.hiddenRepos.has(n));
+        const numRepos = repoNames.length;
+        if (numRepos === 0) return;
+
+        const dRoot = Math.tanh(state.h3RootEdge / 2);
+
+        // Faint boundary sphere = the "horizon" of the Poincaré ball (context cue).
+        const boundaryGroup = new THREE.Group();
+        const boundary = new THREE.Mesh(
+            new THREE.SphereGeometry(state.h3BallR, 24, 16),
+            new THREE.MeshBasicMaterial({
+                color: isDarkMode ? 0x335577 : 0x99aacc,
+                wireframe: true, transparent: true, opacity: isDarkMode ? 0.08 : 0.12,
+            })
+        );
+        boundary.userData = { type: 'h3boundary' };
+        boundaryGroup.add(boundary);
+        scene.add(boundaryGroup);
+        state.repoGroups.set('__h3boundary', boundaryGroup);
+
+        repoNames.forEach((repoName, repoIndex) => {
+            const tree = trees[repoName];
+            const group = new THREE.Group();
+            group.userData = { type: 'repo', name: repoName, github_url: tree.github_url };
+            scene.add(group);
+            state.repoGroups.set(repoName, group);
+
+            // Repo root position + the outward axis its subtree grows along.
+            let rootBall, fwd, cap;
+            if (numRepos === 1) {
+                rootBall = new THREE.Vector3(0, 0, 0);
+                fwd = new THREE.Vector3(0, 1, 0);
+                cap = Math.PI;                       // single repo: children fill the whole sphere
+            } else {
+                fwd = fibSphereDir(repoIndex, numRepos);
+                rootBall = fwd.clone().multiplyScalar(dRoot);
+                cap = state.h3MaxCap;
+            }
+
+            // Repo centre ball (reuse standard colour logic + 'repo' contract).
+            const childScores = collectStatusScores(tree.children);
+            let repoColor;
+            if (childScores.length === 0) {
+                repoColor = state.colorblind ? 0x888888 : 0x6366f1;
+            } else {
+                const avg = childScores.reduce((a, b) => a + b, 0) / childScores.length;
+                repoColor = state.colorblind ? getColorblindGray(avg) : statusScoreToColor(avg);
+            }
+            const rootScale = Math.max(1 - rootBall.lengthSq(), 0.12);
+            const avgScore = childScores.length
+                ? childScores.reduce((a, b) => a + b, 0) / childScores.length : 0.5;
+            let ball;
+            if (garden) {
+                ball = createH3GardenNode(tree, true, avgScore, tree.github_url);
+            } else {
+                ball = new THREE.Mesh(
+                    new THREE.SphereGeometry(state.h3NodeR * 1.4, 24, 24),
+                    new THREE.MeshStandardMaterial({
+                        color: repoColor, emissive: repoColor,
+                        emissiveIntensity: 0.4, metalness: 0.1, roughness: 0.8,
+                    })
+                );
+                ball.userData = { type: 'repo', name: repoName, branch: tree.branch || 'main',
+                                  github_url: tree.github_url };
+            }
+            ball.position.copy(rootBall).multiplyScalar(state.h3BallR);
+            ball.scale.setScalar(rootScale);
+            group.add(ball);
+
+            // Repo label as a sprite (cheap, one per repo).
+            const label = createTextSprite(repoName, {
+                fontsize: 26, backgroundColor: 'rgba(0,0,0,0.8)', textColor: '#ffffff', padding: 24
+            });
+            label.position.copy(ball.position).add(new THREE.Vector3(0, state.h3NodeR * 2.4 * rootScale, 0));
+            const lw = (label.userData.canvasWidth || 256) / 90;
+            label.scale.set(lw, 0.7, 1);
+            label.userData.isLabel = true;
+            group.add(label);
+
+            placeH3Children(tree.children || [], group, rootBall, fwd, cap, 1, tree.github_url);
+        });
+    }
+
+    function placeH3Children(children, group, parentBall, parentFwd, parentCap, depth, githubUrl) {
+        const visible = [];
+        children.forEach(node => {
+            const id = node.workspace_id ||
+                       ('h3-' + (node.repo_name || '') + '-' + (node.pr_number || node.branch || ''));
+            if (state.hiddenWorkspaces.has(id)) return;
+            visible.push({ node, id });
+        });
+        const k = visible.length;
+        if (k === 0) return;
+
+        const dEdge = Math.tanh(state.h3Edge / 2);
+        const cosCap = Math.cos(parentCap);
+        const cellHalf = Math.acos(Math.min(1, Math.max(-1, 1 - (1 - cosCap) / k)));
+        const childCap = Math.min(state.h3MaxCap, hyperIdealHalfAngle(cellHalf, dEdge));
+        const garden = (viewStyle === 'garden');
+        const lineColor = garden ? CONFIG.colors.garden.trunk : getThemeColors().lineColor;
+
+        visible.forEach((entry, i) => {
+            const node = entry.node;
+            const dir = fibCapDir(parentFwd, i, k, parentCap);
+            const childBall = clampBall(mobAdd(parentBall, dir.clone().multiplyScalar(dEdge)));
+            let childFwd = childBall.clone().sub(parentBall);
+            if (childFwd.lengthSq() < 1e-9) childFwd.copy(dir);
+            childFwd.normalize();
+
+            const statusScore = getNodeStatusScore(node);
+            const mesh = garden ? createH3GardenNode(node, false, statusScore, githubUrl)
+                                : createH3Node(node, githubUrl);
+            const scale = Math.max(1 - childBall.lengthSq(), 0.12);
+            mesh.position.copy(childBall).multiplyScalar(state.h3BallR);
+            mesh.scale.setScalar(scale);
+            group.add(mesh);
+            state.nodes.set(entry.id, mesh);
+
+            const a = parentBall.clone().multiplyScalar(state.h3BallR);
+            const b = childBall.clone().multiplyScalar(state.h3BallR);
+            const line = new THREE.Line(
+                new THREE.BufferGeometry().setFromPoints([a, b]),
+                new THREE.LineBasicMaterial({ color: lineColor, transparent: true, opacity: garden ? 0.6 : 0.45 })
+            );
+            group.add(line);
+            state.lines.push(line);
+
+            if (node.children && node.children.length) {
+                placeH3Children(node.children, group, childBall, childFwd, childCap, depth + 1, githubUrl);
+            }
+        });
     }
 
     // ============================================================================
@@ -4037,6 +4487,10 @@
     function animate() {
         requestAnimationFrame(animate);
 
+        // Disk mode owns the screen via its own 2D loop; keep the WebGL loop alive
+        // but skip all the (now empty) label/hover work and just render the empty scene.
+        if (layoutGeom === 'disk') { renderer.render(scene, camera); return; }
+
         spinnerRotation += 0.1;
 
         // Auto-fit camera to content if enabled
@@ -4415,6 +4869,513 @@
         document.getElementById('tooltip').style.display = 'none';
     }
 
+    // ============================================================================
+    // Poincaré DISK mode — 2D hyperbolic focus+context browser
+    //   (after Lamping, Rao & Pirolli, CHI 1995 — the "hyperbolic browser")
+    //
+    // The tree is laid out once in the hyperbolic plane (Poincaré disk). Dragging
+    // applies a Möbius transformation so the point under the cursor follows the
+    // mouse — re-centring the focus while ALL context stays visible inside the disk.
+    // Links are geodesics (arcs meeting the boundary at right angles); node size
+    // shrinks toward the rim by the conformal factor (1 - |z|²).
+    // ============================================================================
+
+    // --- complex arithmetic (points are {x, y}) ---
+    function cadd(a, b) { return { x: a.x + b.x, y: a.y + b.y }; }
+    function cmul(a, b) { return { x: a.x * b.x - a.y * b.y, y: a.x * b.y + a.y * b.x }; }
+    function cconj(a)   { return { x: a.x, y: -a.y }; }
+    function cdiv(a, b) {
+        const d = (b.x * b.x + b.y * b.y) || 1e-18;
+        return { x: (a.x * b.x + a.y * b.y) / d, y: (a.y * b.x - a.x * b.y) / d };
+    }
+
+    // --- orientation-preserving disk isometries as SU(1,1): M(z)=(a z + b)/(b̄ z + ā) ---
+    function suIdentity() { return { a: { x: 1, y: 0 }, b: { x: 0, y: 0 } }; }
+    function suApply(M, z) {
+        const num = cadd(cmul(M.a, z), M.b);
+        const den = cadd(cmul(cconj(M.b), z), cconj(M.a));
+        return cdiv(num, den);
+    }
+    function suCompose(M1, M2) {   // returns M1 ∘ M2 (M2 applied first)
+        return {
+            a: cadd(cmul(M1.a, M2.a), cmul(M1.b, cconj(M2.b))),
+            b: cadd(cmul(M1.a, M2.b), cmul(M1.b, cconj(M2.a)))
+        };
+    }
+    function suTranslate(c) {      // T_c(z) = (z + c)/(c̄ z + 1)
+        let m2 = c.x * c.x + c.y * c.y;
+        if (m2 >= 0.998001) { const s = 0.999 / Math.sqrt(m2); c = { x: c.x * s, y: c.y * s }; m2 = 0.998001; }
+        const s = 1 / Math.sqrt(1 - m2);
+        return { a: { x: s, y: 0 }, b: { x: c.x * s, y: c.y * s } };
+    }
+    function suRotate(phi) {
+        return { a: { x: Math.cos(phi / 2), y: Math.sin(phi / 2) }, b: { x: 0, y: 0 } };
+    }
+
+    function hexToCss(intColor) {
+        return '#' + ((intColor >>> 0) & 0xffffff).toString(16).padStart(6, '0');
+    }
+    function diskNodeId(node) {
+        return node.workspace_id ||
+               ('disk-' + (node.repo_name || '') + '-' + (node.pr_number || node.branch || ''));
+    }
+    function isHiddenDiskNode(node) { return state.hiddenWorkspaces.has(diskNodeId(node)); }
+    function clampDiskPt(p) {
+        const m2 = p.x * p.x + p.y * p.y;
+        if (m2 > 0.998001) { const s = 0.999 / Math.sqrt(m2); return { x: p.x * s, y: p.y * s }; }
+        return p;
+    }
+
+    // --- layout: compute canonical disk coordinates for every node ---
+    function buildDiskModel() {
+        diskNodes = [];
+        if (!state.trackerData || !state.trackerData.trees) return;
+        const trees = state.trackerData.trees;
+        const repoNames = Object.keys(trees).filter(n => !state.hiddenRepos.has(n));
+        if (repoNames.length === 0) return;
+
+        const leafMemo = new Map();
+        function leaves(node) {
+            if (leafMemo.has(node)) return leafMemo.get(node);
+            const kids = (node.children || []).filter(c => !isHiddenDiskNode(c));
+            let v = 0;
+            if (kids.length === 0) v = 1;
+            else for (const c of kids) v += leaves(c);
+            leafMemo.set(node, v);
+            return v;
+        }
+
+        let totalW = 0;
+        repoNames.forEach(n => totalW += leaves(trees[n]));
+        if (totalW <= 0) totalW = 1;
+
+        const dRoot = state.diskRootStep;
+        let ang = -Math.PI;
+        repoNames.forEach(repoName => {
+            const root = trees[repoName];
+            const half = Math.PI * (leaves(root) / totalW);   // half this repo's wedge
+            const center = ang + half;
+            const repoFrame = suCompose(suRotate(center), suTranslate({ x: dRoot, y: 0 }));
+            const repoWorld = suApply(repoFrame, { x: 0, y: 0 });
+            addDiskNode(root, repoWorld, null, repoName, 0, root.github_url, true, leaves(root), null);
+            const childAvail = Math.min(state.diskMaxHalf, hyperIdealHalfAngle(half, dRoot));
+            layoutDiskChildren(root.children || [], repoFrame, childAvail, 1, root.github_url, repoWorld, leaves, leaves(root));
+            ang += 2 * half;
+        });
+    }
+
+    function layoutDiskChildren(children, frame, availHalf, depth, githubUrl, parentWorld, leaves, parentWeight) {
+        const visible = children.filter(c => !isHiddenDiskNode(c));
+        const k = visible.length;
+        if (k === 0) return;
+        let totalW = 0;
+        visible.forEach(c => totalW += leaves(c));
+        if (totalW <= 0) totalW = 1;
+
+        const dStep = state.diskStep;
+        let ang = -availHalf;
+        visible.forEach(node => {
+            const half = availHalf * (leaves(node) / totalW);
+            const center = ang + half;
+            const childFrame = suCompose(frame, suCompose(suRotate(center), suTranslate({ x: dStep, y: 0 })));
+            const world = suApply(childFrame, { x: 0, y: 0 });
+            addDiskNode(node, world, parentWorld, null, depth, githubUrl, false, leaves(node), parentWeight);
+            const childAvail = Math.min(state.diskMaxHalf, hyperIdealHalfAngle(half, dStep));
+            layoutDiskChildren(node.children || [], childFrame, childAvail, depth + 1, githubUrl, world, leaves, leaves(node));
+            ang += 2 * half;
+        });
+    }
+
+    function addDiskNode(node, world, parentWorld, repoName, depth, githubUrl, isRepo, weight, parentWeight) {
+        let score, colorInt;
+        if (isRepo) {
+            const scores = collectStatusScores(node.children);
+            score = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0.5;
+            if (scores.length === 0) colorInt = state.colorblind ? 0x888888 : 0x6366f1;
+            else colorInt = state.colorblind ? getColorblindGray(score) : statusScoreToColor(score);
+        } else {
+            score = getNodeStatusScore(node);
+            colorInt = state.colorblind ? getColorblindGray(score) : statusScoreToColor(score);
+        }
+        if (!node.github_url && githubUrl) node.github_url = githubUrl;
+        diskNodes.push({
+            node, githubUrl,
+            hx: world.x, hy: world.y,
+            px: parentWorld ? parentWorld.x : null,
+            py: parentWorld ? parentWorld.y : null,
+            color: hexToCss(colorInt), depth, isRepo,
+            score, ci: node.ci_status || '',
+            w: weight || 1, pw: parentWeight || 1,
+            hasKids: !!(node.children && node.children.length),
+            label: isRepo ? repoName : (node.pr_title || node.name || node.branch || '')
+        });
+    }
+
+    function diskGeometry() {
+        const W = window.innerWidth, H = window.innerHeight;
+        return { W, H, cx: W / 2, cy: H / 2, R: 0.46 * Math.min(W, H) * diskScale };
+    }
+
+    function drawGeodesic(ctx, p, q, cx, cy, R) {
+        const sx1 = cx + p.x * R, sy1 = cy - p.y * R;
+        const sx2 = cx + q.x * R, sy2 = cy - q.y * R;
+        const cross = p.x * q.y - p.y * q.x;
+        if (Math.abs(cross) < 1e-6) {                 // collinear with centre → straight diameter
+            ctx.beginPath(); ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2); ctx.stroke();
+            return;
+        }
+        const pp = p.x * p.x + p.y * p.y, qq = q.x * q.x + q.y * q.y;
+        const Ox = ((1 + pp) * q.y - (1 + qq) * p.y) / (2 * cross);
+        const Oy = (p.x * (1 + qq) - q.x * (1 + pp)) / (2 * cross);
+        const rho2 = Ox * Ox + Oy * Oy - 1;
+        if (rho2 <= 1e-9) {
+            ctx.beginPath(); ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2); ctx.stroke();
+            return;
+        }
+        const srho = Math.sqrt(rho2) * R;
+        const scx = cx + Ox * R, scy = cy - Oy * R;
+        const a1 = Math.atan2(sy1 - scy, sx1 - scx);
+        const a2 = Math.atan2(sy2 - scy, sx2 - scx);
+        let da = a2 - a1;
+        while (da > Math.PI) da -= 2 * Math.PI;
+        while (da < -Math.PI) da += 2 * Math.PI;
+        ctx.beginPath();
+        ctx.arc(scx, scy, srho, a1, a1 + da, da < 0);   // minor arc
+        ctx.stroke();
+    }
+
+    // ---- botanical (garden) disk helpers ----
+    // Sample screen-space points along the geodesic between display points p,q.
+    function geodesicPoints(p, q, cx, cy, R, seg) {
+        const pts = [];
+        const sx1 = cx + p.x * R, sy1 = cy - p.y * R;
+        const sx2 = cx + q.x * R, sy2 = cy - q.y * R;
+        const cross = p.x * q.y - p.y * q.x;
+        const pp = p.x * p.x + p.y * p.y, qq = q.x * q.x + q.y * q.y;
+        let straight = Math.abs(cross) < 1e-6, Ox, Oy, rho2;
+        if (!straight) {
+            Ox = ((1 + pp) * q.y - (1 + qq) * p.y) / (2 * cross);
+            Oy = (p.x * (1 + qq) - q.x * (1 + pp)) / (2 * cross);
+            rho2 = Ox * Ox + Oy * Oy - 1;
+            if (rho2 <= 1e-9) straight = true;
+        }
+        if (straight) {
+            for (let i = 0; i <= seg; i++) { const t = i / seg; pts.push({ x: sx1 + (sx2 - sx1) * t, y: sy1 + (sy2 - sy1) * t }); }
+            return pts;
+        }
+        const srho = Math.sqrt(rho2) * R, scx = cx + Ox * R, scy = cy - Oy * R;
+        const a1 = Math.atan2(sy1 - scy, sx1 - scx);
+        const a2 = Math.atan2(sy2 - scy, sx2 - scx);
+        let da = a2 - a1; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
+        for (let i = 0; i <= seg; i++) { const a = a1 + da * i / seg; pts.push({ x: scx + Math.cos(a) * srho, y: scy + Math.sin(a) * srho }); }
+        return pts;
+    }
+
+    function mixHex(a, b, t) {
+        const ar = (a >> 16) & 255, ag = (a >> 8) & 255, ab = a & 255;
+        const br = (b >> 16) & 255, bg = (b >> 8) & 255, bb = b & 255;
+        return 'rgb(' + Math.round(ar + (br - ar) * t) + ',' + Math.round(ag + (bg - ag) * t) + ',' + Math.round(ab + (bb - ab) * t) + ')';
+    }
+
+    function ciCss(ci) {
+        if (ci === 'pass') return '#39ff14';
+        if (ci === 'fail') return '#ef4444';
+        if (ci === 'pending') return '#eab308';
+        return null;
+    }
+
+    // A tapered branch following the geodesic from p (parent) to q (child).
+    function drawDiskBranch(ctx, p, q, cx, cy, R, baseW, tipW, color) {
+        const pts = geodesicPoints(p, q, cx, cy, R, 10);
+        ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = color;
+        for (let i = 0; i < pts.length - 1; i++) {
+            const t = i / (pts.length - 1);
+            ctx.lineWidth = Math.max(0.6, baseW + (tipW - baseW) * t);
+            ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[i + 1].x, pts[i + 1].y); ctx.stroke();
+        }
+    }
+
+    function drawBloom(ctx, x, y, r, nPetals, petalCss, centerCss) {
+        ctx.fillStyle = petalCss;
+        for (let i = 0; i < nPetals; i++) {
+            const a = (i / nPetals) * Math.PI * 2 + 0.3;
+            ctx.save();
+            ctx.translate(x + Math.cos(a) * r * 0.7, y + Math.sin(a) * r * 0.7);
+            ctx.rotate(a);
+            ctx.beginPath(); ctx.ellipse(0, 0, r * 0.85, r * 0.45, 0, 0, 2 * Math.PI); ctx.fill();
+            ctx.restore();
+        }
+        ctx.beginPath(); ctx.arc(x, y, r * 0.5, 0, 2 * Math.PI); ctx.fillStyle = centerCss; ctx.fill();
+    }
+
+    // Draw a node as flora: repo = rosette, branch-point = berry/bud, leaf = bloom.
+    function drawFlora(ctx, d, dark) {
+        const x = d._sx, y = d._sy, r = d._r, sc = d.score;
+        const petalInt = sc < 0.33 ? 0xFFB6C1 : sc < 0.66 ? 0xFFD700 : 0xDC143C;  // pink / gold / red
+        const petalCss = mixHex(petalInt, petalInt, 0);
+        if (d.isRepo) {
+            drawBloom(ctx, x, y, r * 1.25, 6, petalCss, '#ffe08a');
+        } else if (d.hasKids) {
+            ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI);
+            ctx.fillStyle = mixHex(0x2E8B57, petalInt, 0.4); ctx.fill();
+            ctx.beginPath(); ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.35, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.fill();
+        } else {
+            drawBloom(ctx, x, y, r, 5, petalCss, '#ffe08a');
+        }
+        const cic = ciCss(d.ci);
+        if (cic && !d.isRepo) {
+            ctx.beginPath(); ctx.arc(x + r * 0.9, y - r * 0.9, Math.max(1.5, r * 0.4), 0, 2 * Math.PI);
+            ctx.fillStyle = cic; ctx.fill();
+        }
+        if (d === diskHover) {
+            ctx.beginPath(); ctx.arc(x, y, r + 4, 0, 2 * Math.PI);
+            ctx.lineWidth = 2; ctx.strokeStyle = dark ? '#fff' : '#1a2030'; ctx.stroke();
+        }
+    }
+
+    function drawDisk() {
+        if (!diskCtx) return;
+        const ctx = diskCtx;
+        const { W, H, cx, cy, R } = diskGeometry();
+        const dark = isDarkMode;
+        const garden = (viewStyle === 'garden');
+        ctx.clearRect(0, 0, W, H);
+
+        // boundary disk + background
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+        if (garden) {
+            const g = ctx.createRadialGradient(cx, cy, R * 0.05, cx, cy, R);
+            if (dark) { g.addColorStop(0, '#172a1d'); g.addColorStop(1, '#070f0a'); }
+            else { g.addColorStop(0, '#f2f8ea'); g.addColorStop(1, '#cfe3c2'); }
+            ctx.fillStyle = g; ctx.fill();
+            ctx.lineWidth = 2; ctx.strokeStyle = dark ? 'rgba(120,170,120,0.4)' : 'rgba(90,140,80,0.55)'; ctx.stroke();
+        } else {
+            ctx.fillStyle = dark ? 'rgba(12,14,22,0.55)' : 'rgba(245,247,252,0.7)'; ctx.fill();
+            ctx.lineWidth = 1.5; ctx.strokeStyle = dark ? 'rgba(120,150,200,0.35)' : 'rgba(80,110,160,0.45)'; ctx.stroke();
+        }
+
+        if (diskNodes.length === 0) {
+            ctx.fillStyle = dark ? '#8893a8' : '#566';
+            ctx.font = '15px -apple-system, system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('No data to display', cx, cy);
+            ctx.textAlign = 'left';
+            return;
+        }
+
+        ctx.save();
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI); ctx.clip();
+
+        // display coords + per-node radius (shared)
+        diskNodes.forEach(d => {
+            const disp = suApply(diskView, { x: d.hx, y: d.hy });
+            d._dx = disp.x; d._dy = disp.y;
+            d._sx = cx + disp.x * R; d._sy = cy - disp.y * R;
+            d._conf = Math.max(0, 1 - (disp.x * disp.x + disp.y * disp.y));
+            const baseR = (d.isRepo ? 0.030 : 0.020) * R;
+            d._r = Math.max(baseR * (0.25 + 0.75 * d._conf), d.isRepo ? 3.5 : 2.2);
+            if (d === diskHover) d._r *= 1.5;
+        });
+
+        if (garden) {
+            // Branches: tapered geodesics, thickness from subtree size, brown→vital colour.
+            diskNodes.forEach(d => {
+                if (d.px === null) return;
+                const pdisp = suApply(diskView, { x: d.px, y: d.py });
+                const baseW = Math.max(0.8, Math.sqrt(d.pw) * 0.9) * (0.35 + 0.65 * d._conf);
+                const tipW = Math.max(0.6, Math.sqrt(d.w) * 0.7) * (0.30 + 0.70 * d._conf);
+                const col = mixHex(0x6b4a2b, getGardenBranchColor(d.score), 0.5);
+                drawDiskBranch(ctx, pdisp, { x: d._dx, y: d._dy }, cx, cy, R, baseW, tipW, col);
+            });
+            diskNodes.forEach(d => drawFlora(ctx, d, dark));
+        } else {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = dark ? 'rgba(125,145,205,0.32)' : 'rgba(90,110,170,0.38)';
+            diskNodes.forEach(d => {
+                if (d.px === null) return;
+                const pdisp = suApply(diskView, { x: d.px, y: d.py });
+                drawGeodesic(ctx, pdisp, { x: d._dx, y: d._dy }, cx, cy, R);
+            });
+            diskNodes.forEach(d => {
+                ctx.beginPath(); ctx.arc(d._sx, d._sy, d._r, 0, 2 * Math.PI);
+                ctx.fillStyle = d.color; ctx.fill();
+                if (d === diskHover) { ctx.lineWidth = 2; ctx.strokeStyle = dark ? '#fff' : '#222'; ctx.stroke(); }
+            });
+        }
+
+        // labels near the focus (and the hovered node) — shared
+        ctx.font = '12px -apple-system, system-ui, sans-serif';
+        ctx.textBaseline = 'middle';
+        diskNodes.forEach(d => {
+            const prominent = d.isRepo ? d._conf > 0.22 : d._conf > 0.55;
+            if (!prominent && d !== diskHover) return;
+            const txt = truncate(d.label || '', 30);
+            if (!txt) return;
+            const tx = d._sx + d._r + 4, ty = d._sy;
+            const tw = ctx.measureText(txt).width;
+            ctx.fillStyle = dark ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.82)';
+            ctx.fillRect(tx - 3, ty - 8, tw + 6, 16);
+            ctx.fillStyle = dark ? '#e8ecf5' : '#1a2030';
+            ctx.fillText(txt, tx, ty);
+        });
+
+        ctx.restore();
+    }
+
+    // --- lifecycle ---
+    function sizeDiskCanvas() {
+        const dc = document.getElementById('disk-canvas');
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        dc.width = Math.floor(window.innerWidth * dpr);
+        dc.height = Math.floor(window.innerHeight * dpr);
+        dc.style.width = window.innerWidth + 'px';
+        dc.style.height = window.innerHeight + 'px';
+        diskCtx = dc.getContext('2d');
+        diskCtx.setTransform(dpr, 0, 0, dpr, 0, 0);   // draw in CSS pixels
+    }
+
+    function enterDiskMode() {
+        const wgl = document.getElementById('canvas');
+        const dc = document.getElementById('disk-canvas');
+        wgl.style.display = 'none';
+        dc.style.display = 'block';
+        dc.style.pointerEvents = 'auto';
+        sizeDiskCanvas();
+
+        diskView = suIdentity();
+        diskScale = 1;
+        diskHover = null;
+        diskDragging = false;
+        diskPrev = null;
+        buildDiskModel();
+        diskNeedsRedraw = true;
+
+        diskHandlers.move   = onDiskMouseMove;
+        diskHandlers.down   = onDiskMouseDown;
+        diskHandlers.up     = onDiskMouseUp;
+        diskHandlers.click  = onDiskClick;
+        diskHandlers.wheel  = onDiskWheel;
+        diskHandlers.leave  = onDiskMouseLeave;
+        diskHandlers.resize = () => { sizeDiskCanvas(); diskNeedsRedraw = true; };
+        dc.addEventListener('mousemove', diskHandlers.move);
+        dc.addEventListener('mousedown', diskHandlers.down);
+        window.addEventListener('mouseup', diskHandlers.up);
+        dc.addEventListener('click', diskHandlers.click);
+        dc.addEventListener('wheel', diskHandlers.wheel, { passive: false });
+        dc.addEventListener('mouseleave', diskHandlers.leave);
+        window.addEventListener('resize', diskHandlers.resize);
+
+        if (!diskRAF) diskLoop();
+    }
+
+    function exitDiskMode() {
+        if (diskRAF) { cancelAnimationFrame(diskRAF); diskRAF = null; }
+        const wgl = document.getElementById('canvas');
+        const dc = document.getElementById('disk-canvas');
+        if (diskHandlers.move) {
+            dc.removeEventListener('mousemove', diskHandlers.move);
+            dc.removeEventListener('mousedown', diskHandlers.down);
+            window.removeEventListener('mouseup', diskHandlers.up);
+            dc.removeEventListener('click', diskHandlers.click);
+            dc.removeEventListener('wheel', diskHandlers.wheel);
+            dc.removeEventListener('mouseleave', diskHandlers.leave);
+            window.removeEventListener('resize', diskHandlers.resize);
+        }
+        dc.style.pointerEvents = 'none';
+        dc.style.display = 'none';
+        dc.classList.remove('grabbing');
+        wgl.style.display = 'block';
+        diskCtx = null;
+        diskNodes = [];
+        diskHover = null;
+        hideTooltip();
+    }
+
+    function diskLoop() {
+        diskRAF = requestAnimationFrame(diskLoop);
+        if (!diskNeedsRedraw) return;
+        diskNeedsRedraw = false;
+        drawDisk();
+    }
+
+    // --- input ---
+    function diskClientToDisk(ev) {
+        const { cx, cy, R } = diskGeometry();
+        return { x: (ev.clientX - cx) / R, y: -(ev.clientY - cy) / R };
+    }
+
+    function diskHitTest(ev) {
+        const { cx, cy, R } = diskGeometry();
+        let best = null, bestD = Infinity;
+        for (const d of diskNodes) {
+            const disp = suApply(diskView, { x: d.hx, y: d.hy });
+            const sx = cx + disp.x * R, sy = cy - disp.y * R;
+            const conf = Math.max(0, 1 - (disp.x * disp.x + disp.y * disp.y));
+            const baseR = (d.isRepo ? 0.030 : 0.020) * R;
+            const r = Math.max(baseR * (0.25 + 0.75 * conf), d.isRepo ? 3.5 : 2.2);
+            const dist = Math.hypot(ev.clientX - sx, ev.clientY - sy);
+            if (dist <= r + 4 && dist < bestD) { bestD = dist; best = d; }
+        }
+        return best;
+    }
+
+    function onDiskMouseDown(ev) {
+        diskDragging = true;
+        dragStartTime = Date.now();
+        diskPrev = diskClientToDisk(ev);
+        document.getElementById('disk-canvas').classList.add('grabbing');
+    }
+
+    function onDiskMouseUp() {
+        diskDragging = false;
+        diskPrev = null;
+        const dc = document.getElementById('disk-canvas');
+        if (dc) dc.classList.remove('grabbing');
+    }
+
+    function onDiskMouseMove(ev) {
+        const tooltip = document.getElementById('tooltip');
+        tooltip.style.left = (ev.clientX + 15) + 'px';
+        tooltip.style.top = (ev.clientY + 15) + 'px';
+
+        if (diskDragging && diskPrev) {
+            const s0 = clampDiskPt(diskPrev);
+            const s1 = clampDiskPt(diskClientToDisk(ev));
+            // Make the grabbed point follow the cursor: V := (T_{s1} ∘ T_{-s0}) ∘ V
+            const g = suCompose(suTranslate(s1), suTranslate({ x: -s0.x, y: -s0.y }));
+            diskView = suCompose(g, diskView);
+            diskPrev = diskClientToDisk(ev);
+            if (diskHover) { diskHover = null; hideTooltip(); }
+            diskNeedsRedraw = true;
+            return;
+        }
+
+        const hit = diskHitTest(ev);
+        if (hit !== diskHover) {
+            diskHover = hit;
+            if (hit) showTooltip(hit.node); else hideTooltip();
+            diskNeedsRedraw = true;
+        }
+    }
+
+    function onDiskMouseLeave() {
+        if (diskHover) { diskHover = null; hideTooltip(); diskNeedsRedraw = true; }
+    }
+
+    function onDiskClick(ev) {
+        if (Date.now() - dragStartTime > 200) return;   // it was a drag, not a click
+        const hit = diskHitTest(ev);
+        if (hit) openNodeUrl(hit.node);
+    }
+
+    function onDiskWheel(ev) {
+        ev.preventDefault();
+        diskScale *= (ev.deltaY < 0) ? 1.1 : 0.9;
+        diskScale = Math.min(4, Math.max(0.4, diskScale));
+        diskNeedsRedraw = true;
+    }
+
     function showCommitTooltip(commit) {
         const tooltip = document.getElementById('tooltip');
 
@@ -4621,8 +5582,17 @@
         }
     }
 
+    // Rebuild whichever layout is active (disk has its own model + canvas)
+    function rebuildActiveLayout() {
+        if (layoutGeom === 'disk') {
+            if (diskCtx) { buildDiskModel(); diskNeedsRedraw = true; }
+        } else {
+            buildScene();
+        }
+    }
+
     function rebuildScene() {
-        buildScene();
+        rebuildActiveLayout();
         updateFooter();
     }
 
@@ -4715,19 +5685,15 @@
 
             document.getElementById('loading').style.display = 'none';
 
-            if (isOrgMode) {
-                const subtitle = isGardenMode ? '3D Garden View' : 'GitHub Org Viewer';
-                document.querySelector('#header .subtitle').textContent = state.locked
-                    ? subtitle + ' (Locked)' : subtitle;
-            } else {
-                document.querySelector('#header .subtitle').textContent = state.locked
-                    ? '3D Visualization (Locked)'
-                    : '3D Visualization';
-            }
+            updateSubtitleForLayout();
 
             // Skip scene rebuild if locked
             if (!state.locked) {
-                buildScene();
+                if (layoutGeom === 'disk') {
+                    if (diskCtx) { buildDiskModel(); diskNeedsRedraw = true; }
+                } else {
+                    buildScene();
+                }
                 if (isOrgMode) {
                     updateOrgStatusPanel();
                     updateOrgFooter();
@@ -4750,11 +5716,13 @@
                     state.useDemo = false;
                     if (data.stale_minutes) CONFIG.staleMinutes = data.stale_minutes;
                     document.getElementById('loading').style.display = 'none';
-                    const subtitle = isGardenMode ? '3D Garden View' : 'GitHub Org Viewer';
-                    document.querySelector('#header .subtitle').textContent = state.locked
-                        ? subtitle + ' (Locked)' : subtitle;
+                    updateSubtitleForLayout();
                     if (!state.locked) {
-                        buildScene();
+                        if (layoutGeom === 'disk') {
+                            if (diskCtx) { buildDiskModel(); diskNeedsRedraw = true; }
+                        } else {
+                            buildScene();
+                        }
                         updateOrgStatusPanel();
                         updateOrgFooter();
                     }
@@ -4775,7 +5743,11 @@
                     ? '3D Visualization (Demo Mode - Locked)'
                     : '3D Visualization (Demo Mode)';
                 if (!state.locked) {
-                    buildScene();
+                    if (layoutGeom === 'disk') {
+                        if (diskCtx) { buildDiskModel(); diskNeedsRedraw = true; }
+                    } else {
+                        buildScene();
+                    }
                     updateStatusPanel();
                     updateFooter();
                 }
@@ -5210,7 +6182,7 @@
     async function init() {
         loadSavedTheme();
         loadSavedColorblind();
-        loadSavedGardenMode();
+        loadSavedLayoutMode();
 
         // Org mode: show landing page if no org specified (server mode only)
         if (window.location.pathname === '/org' && !orgName) {
@@ -5224,7 +6196,11 @@
         }
 
         initThree();
+        resetCameraForLayout(layoutGeom);
         await fetchData();
+
+        // Realize a restored disk mode now that the scene/canvas/data exist
+        if (layoutGeom === 'disk' && !diskCtx) enterDiskMode();
 
         // Start polling (skip in static mode — data won't change)
         if (!isStaticMode) {
