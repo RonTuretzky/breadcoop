@@ -153,3 +153,4 @@ This project was forked from the [Conductor Worktree Tracker](https://github.com
 ## License
 
 MIT License
+
